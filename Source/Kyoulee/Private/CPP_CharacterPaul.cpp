@@ -161,6 +161,7 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	sFrameStatus.FrameUsing--;
 	sAttackInfo.ActionFrame--;
 	iCurrFrame++;
+	//UE_LOG ( LogTemp , Warning , TEXT ( "%d" ) , sFrameStatus.FrameUsing );
 
 	if ( this->Hp <= 0 )
 		this->bIsDead = true;
@@ -202,6 +203,11 @@ void ACPP_CharacterPaul::FrameSystem ( )
 	PlayNextAction ( );
 }
 
+int32 testinput ( int32 currKeyValue )
+{
+	return (currKeyValue & 0b0001111000000000);
+}
+
 bool ACPP_CharacterPaul::PlayNextAction()
 {
 	if ( currKeyValue != 0 && this->GameModeMH->Player1 == this )
@@ -235,8 +241,16 @@ bool ACPP_CharacterPaul::PlayNextAction()
 	{
 		if ( sCurrCommand->NextTrees[currKeyValue]->timingStart <= iCurrFrame  && iCurrFrame < sCurrCommand->NextTrees[currKeyValue]->timingEnd  )
 			sNextCommand = sCurrCommand->NextTrees[currKeyValue];
+	} 
+	else if (testinput(currKeyValue))
+	{
+		int32 tempValue = testinput ( currKeyValue );
+		if ( sCurrCommand->NextTrees.Find ( tempValue ) )
+		{
+			if ( sCurrCommand->NextTrees[tempValue]->timingStart <= iCurrFrame && iCurrFrame < sCurrCommand->NextTrees[tempValue]->timingEnd )
+				sNextCommand = sCurrCommand->NextTrees[tempValue];
+		}
 	}
-
 	return false;
 }
 
@@ -424,16 +438,11 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	/**
 	 *  ForwardKey
 	 */
-	this->AddCommandBaseTree ( { 0 } , forwardkey , 0 , 3 , &ACPP_CharacterPaul::CommandMoveForward );
+	this->AddCommandBaseTree ( { 0 } , forwardkey , 0 , 5 , &ACPP_CharacterPaul::CommandMoveForward );
 	SetSelfReLinkTree ( { 0,forwardkey } );
 	// MoveForward Dash
 	this->AddCommandBaseTree ( { 0, forwardkey } , 0 , 1 , 5 , &ACPP_CharacterPaul::CommandStar );
 	SetSelfReLinkTree ( { 0,forwardkey, 0 } );
-
-
-	this->AddCommandBaseTree ( { 0, forwardkey } , LP , 0 , 3 , &ACPP_CharacterPaul::CommandLeadJab );
-	this->AddCommandBaseTree ( { 0, forwardkey } , forwardkey + LP , 0 , 3 , &ACPP_CharacterPaul::CommandLeadJab );
-	this->AddCommandBaseTree ( { 0, forwardkey, LP } , forwardkey + LP , 0 , 3 , &ACPP_CharacterPaul::CommandEnd );
 
 
 	// DASH while
@@ -810,7 +819,7 @@ void ACPP_CharacterPaul::CommandMoveForward ( )
 	eCharacterState = ECharacterStateInteraction::WalkForward;
 
 	// 애니메이션으로 바꾼다면?
-	this->SetToRelativeLocationFrame ( FVector ( 1 , 0 , 0 ) , 5 );
+	this->SetToRelativeLocationFrame ( FVector ( 2 , 0 , 0 ) , 10 );
 
 	sFrameStatus.FrameUsing = 2;
 }
