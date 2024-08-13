@@ -435,7 +435,8 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->StopAllMontages ( 0.0f );
 			animInstance->InitializeAnimation ( );
 			animInstance->bDie = false;
-
+			animInstance->bFalling = false;
+			animInstance->bKnockDown= false;
 			blackboardComp->SetValueAsBool ( TEXT ( "IsStart" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , false );
