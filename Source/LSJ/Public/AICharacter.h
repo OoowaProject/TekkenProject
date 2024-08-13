@@ -193,6 +193,9 @@ public:
 	{
 		return blackboardComp;
 	};
-
+	float startDirection = 1.0f;
 	FVector direction;
+	class IAIStateInterface* preState;
+	FVector currentVelocity;
+	FVector previousLocation;
 };

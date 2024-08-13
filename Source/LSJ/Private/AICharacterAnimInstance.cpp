@@ -9,6 +9,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "AIStateComboLaserAttack.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraFunctionLibrary.h"
+#include "Components/CapsuleComponent.h"
 
 void UAICharacterAnimInstance::UpdateProperties ( )
 {
@@ -20,7 +21,10 @@ void UAICharacterAnimInstance::UpdateProperties ( )
         // 공중에 있는지
         bIsInAir = owner->GetMovementComponent ( )->IsFalling ( );
         // Z축이 필요없기 때문에 Z는 0.f로 처리해서 속력를 구한다
-        FVector velocity = owner->GetVelocity ( );
+         // Calculate velocity based on position change
+
+
+        FVector velocity = owner->currentVelocity;
         velocityZ = velocity.Z;
         velocity = FVector ( velocity.X , velocity.Y , 0.f );
         movementSpeed = FVector ( velocity.X , velocity.Y , 0.f ).Size ( );
@@ -92,6 +96,10 @@ void UAICharacterAnimInstance::PlayMontageAtFrameRate ( UAnimMontage* montage , 
 
 UAICharacterAnimInstance::UAICharacterAnimInstance ( )
 {
+    static ConstructorHelpers::FObjectFinder <UAnimMontage> hitFallingAirMontageFinder
+    ( TEXT ( "/Script/Engine.AnimMontage'/Game/LSJ/Animation/FinalAnimation/FallingHit_Montage.FallingHit_Montage'" ) );
+    if ( hitFallingAirMontageFinder.Succeeded ( ) )
+        hitFallingAirMontage = hitFallingAirMontageFinder.Object;
     static ConstructorHelpers::FObjectFinder <UAnimMontage> hitFallingRHMontageFinder
     ( TEXT ( "/Script/Engine.AnimMontage'/Game/LSJ/Animation/FinalAnimation/A_FallBack_Mid_Roll2_Montage.A_FallBack_Mid_Roll2_Montage'" ) ); //"/Script/Engine.AnimSequence'/Game/Jaebin/Kazuya/Walk_Forward/Walking_Anim.Walking_Anim'" ) );
     if ( hitFallingRHMontageFinder.Succeeded ( ) )
@@ -202,83 +210,95 @@ void UAICharacterAnimInstance::HandleOnMontageEnded ( UAnimMontage* Montage , bo
     else
     {
     // Animation Montage가 정상적으로 끝났습니다.
-        if ( Montage == crossWalkCounterclockwiseMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::Move );
-            //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
-        }
-        else
-        if ( Montage == crossWalkClockwiseMontage)
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::Move );
-            //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
-        }
-        else
-        if ( Montage == walkForwardMontage)
-        {
-           owner->ExitCurrentState ( ECharacterStateInteraction::Move);
-            //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
-        }
-        else
-        if ( Montage == walkBackMontage )
-        {
-            //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
-            //if ( OnLog ) UE_LOG ( LogTemp , Warning , TEXT ( "walkBackMontage walkBackMontage %s" ) , *Montage->GetName ( ) );
-        }
-        else
-        if ( Montage == attackLFMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-        }
-        else
-		if ( Montage == attackLHMontage )
-		{
-			owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-		}
-        else
-            if ( Montage == attackRHMontage )
-            {
-                owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-            }
-
-        else
-            if ( Montage == uppercutLHMontage )
-            {
-                owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-            }
-        else
-        if ( Montage == comboLaserMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-        }
-        else if ( Montage == hitMiddleMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::HitGround );
-        }
-        else if ( Montage == hitTopMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::HitGround );
-        }
-		 else if ( Montage == hitFallingMontage )
-		 {
-			 owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
-		 }
-         else if ( Montage == hitFallingTurnMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
-        }
-         else if ( Montage == boundMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
-        }
-         else if ( Montage == attackLowerLFMontage )
-        {
-            owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-        }
+      
+         if ( Montage == hitFallingAirMontage )
+         {
+         }
          else
-        {
-           owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-        }
+         {
+             owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+             owner->SetStateIdle ( );
+         }
+
+
+  //      if ( Montage == crossWalkCounterclockwiseMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::Move );
+  //          //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
+  //      }
+  //      else
+  //      if ( Montage == crossWalkClockwiseMontage)
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::Move );
+  //          //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
+  //      }
+  //      else
+  //      if ( Montage == walkForwardMontage)
+  //      {
+  //         owner->ExitCurrentState ( ECharacterStateInteraction::Move);
+  //          //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
+  //      }
+  //      else
+  //      if ( Montage == walkBackMontage )
+  //      {
+  //          //owner->SetActorLocation ( owner->GetActorLocation ( ) + BeforeLocation - NowLocation );
+  //          //if ( OnLog ) UE_LOG ( LogTemp , Warning , TEXT ( "walkBackMontage walkBackMontage %s" ) , *Montage->GetName ( ) );
+  //      }
+  //      else
+  //      if ( Montage == attackLFMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //      }
+  //      else
+		//if ( Montage == attackLHMontage )
+		//{
+		//	owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+		//}
+  //      else
+  //          if ( Montage == attackRHMontage )
+  //          {
+  //              owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //          }
+
+  //      else
+  //          if ( Montage == uppercutLHMontage )
+  //          {
+  //              owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //          }
+  //      else
+  //      if ( Montage == comboLaserMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //      }
+  //      else if ( Montage == hitMiddleMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::HitGround );
+  //      }
+  //      else if ( Montage == hitTopMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::HitGround );
+  //      }
+		// else if ( Montage == hitFallingMontage )
+		// {
+		//	 owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
+		// }
+  //       else if ( Montage == hitFallingTurnMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
+  //      }
+  //       else if ( Montage == boundMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::HitFalling );
+  //      }
+  //       else if ( Montage == attackLowerLFMontage )
+  //      {
+  //          owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //      }
+  //       else
+  //      {
+  //         owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+  //         owner->SetStateIdle ( );
+  //      }
     }
 }
 

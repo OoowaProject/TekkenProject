@@ -19,10 +19,9 @@ void UAIStateKnockDown::SetAttackInfo ( FAttackInfoInteraction& pAttackInfo )
 void UAIStateKnockDown::Enter ( UAICharacterAnimInstance* pAnimInstance )
 {
 	Super::Enter ( pAnimInstance );
+	animInstace->bFalling = false;
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKnockDown" ) , false );
 	currentTime = 0;
-	isKnockDown = true;
-
 }
 
 void UAIStateKnockDown::Execute ( const float& deltatime )
@@ -31,16 +30,15 @@ void UAIStateKnockDown::Execute ( const float& deltatime )
 	if ( currentTime >= knockDownTime || WasHit )
 	{
 		WasHit = false;
+		isKnockDown = false;
 		owner->PlayAnimMontage ( animInstace->standUpMontage );
 		currentTime = 0;
-		isKnockDown = false;
 	}
 }
 
 void UAIStateKnockDown::Exit ( )
 {
 	WasHit = false;
-	isKnockDown = false;
 	currentTime = 0;
 	//animInstace->bKnockDown = false;
 	//owner->ChangeState ( owner->GetAIStateIdle ( ) );
