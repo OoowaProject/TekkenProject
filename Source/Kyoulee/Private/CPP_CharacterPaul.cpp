@@ -149,8 +149,8 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	Super::Tick ( DeltaTime );
 // 	if ( this->GameModeMH->Player2 == this )
 // 		return;
-// 	if (this->GameModeMH->Player1 == this)
-// 		this->DebugMode = 1;
+	if (this->GameModeMH->Player1 == this)
+		this->DebugMode = 1;
 
 	// 주의 모든 작업은 FrameSystem에서 하는걸 권장합니다.
 	this->fCurrTimeForFrame += DeltaTime;
@@ -169,11 +169,12 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	if ( this->bIsDead )
 		return;
 	// 다음 행동 정의
-	if (this->GetZValue()  <= 10 )
+	if (this->GetZValue() <= 10 )
 		this->bFalling = false;
 	else
 		return;
 	this->FrameSystem ( );
+	this->prevKeyValue = currKeyValue;
 }
 
 /**
@@ -183,7 +184,6 @@ void ACPP_CharacterPaul::FrameSystem ( )
 {
 	AnimationFrame();
 	this->currKeyValue = this->GetCurrInputKeyValue ( );
-
 	this->fCurrTimeForFrame = 0;
 
 	// 맞음으로 인한 모든 행동 불가 액션취소
@@ -230,12 +230,13 @@ bool ACPP_CharacterPaul::PlayNextAction()
 		}
 		sCurrCommandKeys = sCurrCommand->NextKeys;
 	}
-
-	if ( sCurrCommand->NextTrees.Find( currKeyValue ) )
+	
+	if (  sCurrCommand->NextTrees.Find( currKeyValue )  )
 	{
 		if ( sCurrCommand->NextTrees[currKeyValue]->timingStart <= iCurrFrame  && iCurrFrame < sCurrCommand->NextTrees[currKeyValue]->timingEnd  )
 			sNextCommand = sCurrCommand->NextTrees[currKeyValue];
 	}
+
 	return false;
 }
 
@@ -293,6 +294,11 @@ void ACPP_CharacterPaul::SetAttackInfoOwnerOpposite ( )
 
 void ACPP_CharacterPaul::AnimationFrame ( )
 {
+	if ( this->bFalling && this->fFallingValue <= 1.0f )
+		this->fFallingValue += 0.01f;
+	else if ( !this->bFalling && this->fFallingValue > 0.0f )
+		this->fFallingValue -= 0.01f;
+	
 	if ( bMoveTo )
 	{
 		if (!this->ToLocationFrame.IsEmpty())
@@ -423,6 +429,12 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	// MoveForward Dash
 	this->AddCommandBaseTree ( { 0, forwardkey } , 0 , 1 , 5 , &ACPP_CharacterPaul::CommandStar );
 	SetSelfReLinkTree ( { 0,forwardkey, 0 } );
+
+
+	this->AddCommandBaseTree ( { 0, forwardkey } , LP , 0 , 3 , &ACPP_CharacterPaul::CommandLeadJab );
+	this->AddCommandBaseTree ( { 0, forwardkey } , forwardkey + LP , 0 , 3 , &ACPP_CharacterPaul::CommandLeadJab );
+	this->AddCommandBaseTree ( { 0, forwardkey, LP } , forwardkey + LP , 0 , 3 , &ACPP_CharacterPaul::CommandEnd );
+
 
 	// DASH while
 	this->AddCommandBaseTree ( { 0, forwardkey, 0 } , forwardkey , 1 , 5 , &ACPP_CharacterPaul::CommandMoveForwarDash );
@@ -582,7 +594,7 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0 } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA );
 	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
 
-	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 3 , & ACPP_CharacterPaul::CommandLeftTiger );
+	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger );
 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
 
 
@@ -1509,10 +1521,10 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 	this->SetToWorldLocationPoint ( attackInfoHit.KnockBackDirection );
 	this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , 10 );
 	LaunchCharacter ( FVector(0,0, attackInfoHit.KnockBackDirection.Z) , true , true );
-	if (this->GetZValue() > 10 )
-		LaunchCharacter ( FVector ( 0 , 0 , attackInfoHit.KnockBackDirection.Z ) * 0.7 , true , true );
-
-
+	float valie = this->GetZValue ( );
+	if ( valie > 10 )
+		this->bFalling = true;
+	
 	iCurrFrame = 0;
 	// heart animation 추가하기
 	if ( this->Hp > 0 )

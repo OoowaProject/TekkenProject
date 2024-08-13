@@ -32,6 +32,9 @@ public:
 	bool	bFalling;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
+	float	fFallingValue;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
 	bool	bNuckDown;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )

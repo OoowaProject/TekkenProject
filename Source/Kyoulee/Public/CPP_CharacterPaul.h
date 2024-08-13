@@ -62,6 +62,7 @@ public:
 	int32 timingEnd;						// 끝시간
 	int32 timingAction;						// 발동 시간
 	FActoin action;							// 발동 함수
+	bool loopCommand;						// 반복 함수인지 체크합니다
  };
 
 
@@ -95,6 +96,12 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FInputKey CurrInputKey;
+	FInputKey PrevInputKey;
+
+	int32 CurrInputMoveKey;
+	int32 CurrInputActionKey;
+	
+
 	UFUNCTION ( )
 	FInputKey GetCurrInputKey ( );
 	UFUNCTION()
@@ -122,6 +129,7 @@ public:
 	 */
 	void FrameSystem();
 	bool PlayNextAction ( );
+	int32 FindSkellValue ( int32 value );
 	FFrameStatus sFrameStatus;
 	float fFrameTime = (1 / 60)  * 1000 ;
 	float fCurrTimeForFrame = 60;
@@ -142,6 +150,7 @@ public:
 	bool bNuckDown = 0;
 	bool bDead = 0;
 
+	float fFallingValue = 0;
 
 	void SetActtacInfoSkell ( EDamagePointInteraction damagePointInteraction ,
 	int32 damageAmount , int32 actionFrame , int32 retrieveFrame ,
@@ -243,13 +252,14 @@ public:
 	FCommandTree* sTempCommand;
 	TArray<int32> sCurrCommandKeys;
 
+	int32 prevKeyValue = 0;
 	int32 currKeyValue = 0;
 	int32 nextKeyValue = 0;
 
 	void SettingCommandTree ( );
 	FCommandTree* CreateCommandTree ( int32 keyValue, int32 timingStart , int32 timingEnd  , void (ACPP_CharacterPaul::* fptr)() );
 	FCommandTree* AddCommandTree ( TMap<int32 , FCommandTree*>& CurrCommandTree , int32 keyValue  , int32 timingEnd , int32 timingAction , void(ACPP_CharacterPaul::* fptr)() );
-	FCommandTree* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)() );
+	FCommandTree* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)());//, bool loopCommand );
 
 	bool CheckKeyArray();
 

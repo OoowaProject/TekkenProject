@@ -34,6 +34,7 @@ void UCPP_PualAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	this->bCrouch = player->bCrouched;
 	this->bFalling = player->bFalling;
 	this->bNuckDown = player->bNuckDown;
+	this->fFallingValue = player->fFallingValue;
 	
 	this->bDead = player->bIsDead;
 }
