@@ -4,6 +4,8 @@
 #include "CPP_PualAnimInstance.h"
 #include "CPP_CharacterPaul.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 void UCPP_PualAnimInstance::NativeInitializeAnimation ( )
 {
@@ -26,8 +28,8 @@ void UCPP_PualAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (nullptr == player)
 		return;
 
-	FVector velocity = player->GetVelocity();
-
+//	FVector velocity = player->GetVelocity();
+	FVector velocity = player->locationlenght;
 	this->fVertical = FVector::DotProduct(player->GetActorForwardVector(), velocity);
 	this->fHorizontal = FVector::DotProduct(player->GetActorRightVector(), velocity);
 
