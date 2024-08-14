@@ -46,10 +46,11 @@ void UAIStateWalkCross::Execute ( const float& deltatime )
 	MoveStep(deltatime);
 
 	//상대방을 쳐다보자
-	FVector opponentPlayerRotator = owner->aOpponentPlayer->GetMesh ( )->GetBoneLocation ((TEXT("head" )));
-	opponentPlayerRotator.Z = owner->GetActorLocation ( ).Z;
-	FRotator lookRotator = (opponentPlayerRotator - owner->GetActorLocation()).Rotation ( );
-	owner->SetActorRotation ( FMath::RInterpTo ( owner->GetActorRotation ( ) , lookRotator , deltatime , 100.0f ) );
+	//FVector opponentPlayerRotator = owner->aOpponentPlayer->GetMesh ( )->GetBoneLocation ((TEXT("head" )));
+	//opponentPlayerRotator.Z = owner->GetActorLocation ( ).Z;
+	//FRotator lookRotator = (opponentPlayerRotator - owner->GetActorLocation()).Rotation ( );
+	//owner->SetActorRotation ( FMath::RInterpTo ( owner->GetActorRotation ( ) , lookRotator , deltatime , 100.0f ) );
+	owner->LookTarget ( deltatime );
 }
 
 void UAIStateWalkCross::Exit ( )
@@ -126,7 +127,15 @@ void UAIStateWalkCross::MoveStep ( float DeltaTime )
 	//위치 원래값
 	FVector orbitLocation = targetCenter + FVector ( FMath::Cos ( RadAngle ) * orbitRadius , FMath::Sin ( RadAngle ) * orbitRadius , 0.0f );
 	//SetActorLocation을 사용하여 이동
-	owner->SetActorLocation ( orbitLocation );
+	//owner->SetActorLocation ( orbitLocation );
 	//AddMovementInput 거리가 일정하게만 유지되고 여러 조절이 안됨
 	//owner->AddMovementInput ( MoveDirection ,1.0f,true);
+
+	   // 이동 방향 및 거리 계산
+	FVector MoveDirection = (orbitLocation - owner->GetActorLocation ( )).GetSafeNormal ( );
+	float Distance = FVector::Dist ( owner->GetActorLocation ( ) , orbitLocation );
+
+	// 이동 벡터 계산 및 이동
+	FVector MoveVector = MoveDirection * FMath::Min ( Distance , 200.0f * DeltaTime );
+	owner->GetCapsuleComponent ( )->AddRelativeLocation ( MoveVector  );
 }

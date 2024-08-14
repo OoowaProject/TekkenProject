@@ -13,7 +13,7 @@ UCLASS()
 class LSJ_API UAIStateKnockDown : public UAIStateComponent
 {
 	GENERATED_BODY()
-	float knockDownTime = 10.0f;
+	float knockDownTime = 3.0f;
 	float currentTime;
 public:
 	bool WasHit;

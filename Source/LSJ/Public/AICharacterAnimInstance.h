@@ -63,6 +63,8 @@ public:
 	virtual void PlayMontageAtFrameRate ( UAnimMontage* montage , int32 nFrames , float frameRate );
 	UPROPERTY(EditAnyWhere , BlueprintReadOnly, Category = Move, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* hitFallingRHMontage;
+		UPROPERTY(EditAnyWhere , BlueprintReadOnly, Category = Move, Meta = (AllowPrivateAccess = true))
+	UAnimMontage* hitFallingAirMontage;
 	UPROPERTY ( EditAnyWhere , BlueprintReadOnly , Category = Move )
 	UAnimMontage* hitKnockDownMontage;
 	UPROPERTY ( EditAnyWhere , BlueprintReadOnly , Category = Move )
@@ -78,23 +80,25 @@ public:
 		UPROPERTY(EditAnyWhere , BlueprintReadOnly, Category = Move, Meta = (AllowPrivateAccess = true))
 	UAnimMontage* standUpMontage;
 	UAICharacterAnimInstance();
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float movementSpeed;
 
-	UPROPERTY( VisibleAnywhere , BlueprintReadOnly )
+	UPROPERTY( EditDefaultsOnly , BlueprintReadOnly )
 	float direction;
     
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+	UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
 	bool bIsInAir;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+	UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
 	float velocityZ;
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+		UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
 	bool bFalling;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+	UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
+	bool bOnGround;
+	UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
 	bool bRun;
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+	UPROPERTY ( EditDefaultsOnly , BlueprintReadWrite )
 	bool bDie;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite )
+	UPROPERTY( EditDefaultsOnly , BlueprintReadWrite )
 	bool bKnockDown;
 	 // Animation Montage가 끝났을 때 호출될 함수
     UFUNCTION()
