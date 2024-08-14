@@ -214,16 +214,16 @@ void UAICharacterAnimInstance::HandleOnMontageEnded ( UAnimMontage* Montage , bo
     {
     // Animation Montage가 정상적으로 끝났습니다.
       
-        if ( owner->GetCurrentState ( ) ==owner->GetAIStateHit() || owner->GetCurrentState ( ) == owner->GetAIStateHitFalling ( ) || owner->GetCurrentState ( ) == owner->GetAIStateKnockDown ( ) )
-        {
-            if ( Montage == hitFallingRHMontage || Montage == hitKnockDownMontage || Montage == hitLowerRFMontage || Montage == hitTopMontage ||
-                Montage == hitMiddleMontage || Montage == hitFallingMontage || Montage == hitFallingTurnMontage || Montage == standUpMontage )
-            {
-                owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
-                owner->SetStateIdle ( );
-            }
-        }
-        else
+	/*    if ( owner->GetCurrentState ( ) ==owner->GetAIStateHit() || owner->GetCurrentState ( ) == owner->GetAIStateHitFalling ( ) || owner->GetCurrentState ( ) == owner->GetAIStateKnockDown ( ) )
+		{
+			if ( Montage == hitFallingRHMontage || Montage == hitKnockDownMontage || Montage == hitLowerRFMontage || Montage == hitTopMontage ||
+				Montage == hitMiddleMontage || Montage == hitFallingMontage || Montage == hitFallingTurnMontage || Montage == standUpMontage )
+			{
+				owner->ExitCurrentState ( ECharacterStateInteraction::AttackLower );
+				owner->SetStateIdle ( );
+			}
+		}
+		else*/
          if ( Montage == hitFallingAirMontage )
          {
          }

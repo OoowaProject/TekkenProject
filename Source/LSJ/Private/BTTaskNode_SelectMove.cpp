@@ -24,17 +24,16 @@ EBTNodeResult::Type UBTTaskNode_SelectMove::ExecuteTask ( UBehaviorTreeComponent
 	float WalkForwardRange = 132;
 	//공격할 모션을 랜덤으로 공격전에 미리 선택
 	randomAttackIndex = FMath::RandRange ( 1 , 3 );
-
 	switch ( randomAttackIndex )
 	{
 	case 1: //상단
-		attackRange = 81.0f;
+		attackRange = 95.0f;
 		break;
 	case 2: //중단
-		attackRange = 175.0f;
+		attackRange = 155.0f;
 		break;
 	case 3: //하단
-		attackRange = 157.0f;
+		attackRange = 137.0f;
 		break;
 	default:
 		attackRange = 100.0f;

@@ -37,7 +37,7 @@ void UAIStateRun::Execute ( const float& deltatime )
 			owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * deltatime * moveSpeed ); //( owner->GetActorForwardVector ( ) * deltatime * moveSpeed );
 
 	}
-	if(owner->GetBTWDistance()<=attackRange)
+	if(owner->GetBTWDistance()+30.0f<=attackRange)
 	{
 		Exit();
 		return;

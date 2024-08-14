@@ -196,6 +196,7 @@ public:
 	float startDirection = 1.0f;
 	FVector direction;
 	class IAIStateInterface* preState;
-	FVector currentVelocity;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite )
 	FVector previousLocation;
 };
