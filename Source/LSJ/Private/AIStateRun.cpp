@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BehaviorTree/BlackBoardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
+#include "Components/CapsuleComponent.h"
 void UAIStateRun::SetDistance ( float pDistance )
 {
 	//distance = pDistance;
@@ -20,6 +21,7 @@ void UAIStateRun::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	Super::Enter ( pAnimInstance );
 	animInstace->bRun = true;
 	attackRange = owner->GetBlackboardComponent ( )->GetValueAsFloat(TEXT("AttackRange" ));
+	moveSpeed = 400.0f;
 }
 
 void UAIStateRun::Execute ( const float& deltatime )
@@ -28,9 +30,13 @@ void UAIStateRun::Execute ( const float& deltatime )
 		return;
 	if( nullptr == owner->aOpponentPlayer)
 		return;
-	owner->LookTarget (deltatime);
-	owner->GetCharacterMovement()->AddInputVector(owner->GetActorForwardVector()*deltatime* moveSpeed );
+	if ( animInstace->bRun == true)
+	{
+		owner->LookTarget ( deltatime );
+		//owner->GetCharacterMovement()->AddInputVector(owner->GetActorForwardVector()*deltatime* moveSpeed * 1000000 );
+			owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * deltatime * moveSpeed ); //( owner->GetActorForwardVector ( ) * deltatime * moveSpeed );
 
+	}
 	if(owner->GetBTWDistance()<=attackRange)
 	{
 		Exit();

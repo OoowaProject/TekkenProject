@@ -9,6 +9,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Animation/AnimTypes.h"
 #include "BehaviorTree/BlackBoardComponent.h"
+#include "Components/CapsuleComponent.h"
 void UAIStateWalkForward::SetDistance ( float pDistance )
 {
 	distance = pDistance;
@@ -30,11 +31,11 @@ void UAIStateWalkForward::Enter (UAICharacterAnimInstance* pAnimInstance )
 
 	animInstace->PlayerWalkForwardMontage();
 	//animInstace->StateWalkForward(true);
-	direction=owner->GetActorForwardVector ( );
+	direction=owner->GetCapsuleComponent()->GetForwardVector ( );
 
 	//초기 스피드 설정
-	walkSpeed = 100.0f;
-	walkDashMinSpeed = 80.0f;
+	walkSpeed = 100.0f * 3.0f;
+	walkDashMinSpeed = 80.0f * 3.0f;
 	walkTime = 0;
 
 	//초기 상대를 바라보는 Rotator
@@ -50,6 +51,7 @@ void UAIStateWalkForward::Enter (UAICharacterAnimInstance* pAnimInstance )
 	{
 		endFrame= NotifyEvent->GetTriggerTime ();
 	}
+
 }
 
 void UAIStateWalkForward::Execute ( const float& deltatime )
@@ -59,6 +61,8 @@ void UAIStateWalkForward::Execute ( const float& deltatime )
 		return;
 	if ( nullptr == owner->aOpponentPlayer )
 		return;
+	//if ( false == ToLookTargetRotate ( deltatime ) )
+	//	return;
 	ToLookTargetRotate ( deltatime );
 
 	//속도가 처음에 크고 끝에는 작아지게 하면 좋을 것 같다.
@@ -69,7 +73,9 @@ void UAIStateWalkForward::Execute ( const float& deltatime )
 	else 
 		//느려지게
 		moveSpeed = FMath::Lerp ( walkSpeed , 0 , (walkTime += deltatime)/endFrame );
-	owner->AddMovementInput ( direction * moveSpeed * deltatime);
+
+	owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * moveSpeed * deltatime );
+	//owner->AddMovementInput ( direction * moveSpeed * deltatime);
 	//owner->SetActorLocation(direction * walkSpeed * deltatime);
 }
 

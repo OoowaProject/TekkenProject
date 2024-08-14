@@ -107,7 +107,7 @@ protected:
 	virtual void BeginPlay() override;
 	bool isResume;
 	bool isPause;
-	AGameMode_MH* gameMode;
+	class AGameMode_MH* gameMode;
 public:
 	//사운드
 	UPROPERTY(EditDefaultsOnly)
@@ -193,6 +193,9 @@ public:
 	{
 		return blackboardComp;
 	};
-
+	float startDirection = 1.0f;
 	FVector direction;
+	class IAIStateInterface* preState;
+	FVector currentVelocity;
+	FVector previousLocation;
 };

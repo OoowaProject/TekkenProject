@@ -405,16 +405,20 @@ void AAICharacter::BeginPlay()
 	float cameraDirection = FVector::DotProduct ( UGameplayStatics::GetPlayerPawn ( GetWorld ( ) , 0 )->GetActorRightVector ( ) , GetActorLocation ( ) );
 	if ( cameraDirection > 0 )
 	{
+		startDirection *= .0;
 		aiController->SetBehaviorTree ( 1 );
 	}
 	else
 	{
+	
 		aiController->SetBehaviorTree ( 2 );
 	}
 	blackboardComp = aiController->GetBlackboardComponent ( );
 	check ( blackboardComp );
 
 	gameMode = Cast<AGameMode_MH> ( UGameplayStatics::GetGameMode ( GetWorld ( ) ) );
+
+	previousLocation = GetActorLocation ( );
 }
 
 void AAICharacter::Tick(float DeltaTime)
@@ -431,7 +435,8 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->StopAllMontages ( 0.0f );
 			animInstance->InitializeAnimation ( );
 			animInstance->bDie = false;
-
+			animInstance->bFalling = false;
+			animInstance->bKnockDown= false;
 			blackboardComp->SetValueAsBool ( TEXT ( "IsStart" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , false );
@@ -477,7 +482,10 @@ void AAICharacter::Tick(float DeltaTime)
 	//	//라운드 시작 n초뒤 한번
 	//}
 
-
+	//현재 이동 속도
+	FVector currentLocation = GetActorLocation ( );
+	currentVelocity = (currentLocation - previousLocation) / DeltaTime;
+	previousLocation = currentLocation;
 
 	UpdateState( DeltaTime );
 	
@@ -497,6 +505,21 @@ void AAICharacter::Tick(float DeltaTime)
 	{
 		FVector Gravity = FVector ( 0 , 0 , -980 ); // 기본 중력 값
 		AddMovementInput ( Gravity * DeltaTime,true);
+	}
+
+	//누워있을때 바닥인지 감지하는 line trace
+	FHitResult hit;
+	FVector traceStart = GetMesh ( )->GetBoneLocation ((TEXT ( "spine_01" )));//TEXT ( "spine_01" ) );
+	FVector traceEnd = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetUpVector () * -30.0f;
+	FCollisionQueryParams queryParams;
+	queryParams.AddIgnoredActor ( this );
+	GetWorld ( )->LineTraceSingleByChannel ( hit , traceStart , traceEnd , ECollisionChannel::ECC_Visibility , queryParams );
+	DrawDebugLine ( GetWorld ( ) , traceStart , traceEnd , hit.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 10.0f );
+	if ( hit.bBlockingHit  )// && false ==IsValid ( hit.GetActor()) )
+	{
+		if ( animInstance )
+			animInstance->bOnGround = true;
+		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
 	}
 
 	if ( nullptr != aOpponentPlayer )
@@ -577,7 +600,7 @@ void AAICharacter::ChangeState ( IAIStateInterface* NewState )
 	//if ( NewState == stateHit && currentState != stateHit ) {
 	//	currentState->Exit ( );
 	//}
-
+	preState = currentState;
 	currentState = NewState;
 
 	if ( currentState ) {
@@ -984,6 +1007,8 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 	//	CheckCollision ( bool guard , UBoxComponent * hitCollision )
 	if ( blackboardComp )
 	{
+		preState = currentState;
+
 		niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
 
 		
@@ -1001,23 +1026,23 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 			{
 				//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
 				// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
-				UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
-					this ,
-					niagara ,  // Niagara 시스템의 참조
-					attackInfo.skellEffectLocation,
-					FRotator::ZeroRotator ,
-						FVector ( 1.0f ) ,  // 기본 스케일
-						true ,  // AutoDestroy를 true로 설정
-						true ,  // AutoActivate를 true로 설정
-						ENCPoolMethod::None // 풀링 방식을 None으로 설정
-				);
+				//UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
+				//	this ,
+				//	niagara ,  // Niagara 시스템의 참조
+				//	attackInfo.skellEffectLocation,
+				//	FRotator::ZeroRotator ,
+				//		FVector ( 1.0f ) ,  // 기본 스케일
+				//		true ,  // AutoDestroy를 true로 설정
+				//		true ,  // AutoActivate를 true로 설정
+				//		ENCPoolMethod::None // 풀링 방식을 None으로 설정
+				//);
 
 				// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
-				if ( niagaraComponent )
+				/*if ( niagaraComponent )
 				{
 					niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
 					niagaraComponent->SetAutoDestroy ( true );
-				}
+				}*/
 			}
 		}
 		if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )
@@ -1045,9 +1070,11 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 		}
 		else
 		{
-			if ( attackInfo.KnockBackFallingDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+			if ( attackInfo.KnockBackDirection.Y > 0 || currentState == stateBound || currentState == stateHitFalling )
 			{
 				ExitCurrentState ( ECharacterStateInteraction::HitGround );
+				if ( preState == stateHitFalling )
+					stateHitFalling->WasHitFalling = true;
 				stateHitFalling->SetAttackInfo ( attackInfo );
 				blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
 			}
@@ -1113,9 +1140,22 @@ void AAICharacter::LookTarget (const float& deltaTime)
 	FVector opponentPlayerRotator = aOpponentPlayer->GetMesh()->GetBoneLocation((TEXT("head")));
 	opponentPlayerRotator.Z = GetActorLocation ( ).Z;
 	FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+
+	GetCapsuleComponent ( )->SetRelativeRotation (  lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
 void AAICharacter::LookTarget ( const float& deltaTime , FRotator lookRotator)
 {
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+	GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	
+	/*GetCapsuleComponent ( )->SetWorldRotation ( FMath::RInterpTo ( GetCapsuleComponent ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetWorldRotation ( FMath::RInterpTo ( GetMesh ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	*/
+	
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
