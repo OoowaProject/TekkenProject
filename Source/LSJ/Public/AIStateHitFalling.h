@@ -21,6 +21,7 @@ class LSJ_API UAIStateHitFalling : public UAIStateComponent
 	bool isExitOneMore;
 
 public:
+	bool WasHitFalling;
 	bool WasKnockDown;
 	void SetAttackInfo ( FAttackInfoInteraction& pAttackInfo );
 	virtual void Enter ( class UAICharacterAnimInstance* pAnimInstance ) override;

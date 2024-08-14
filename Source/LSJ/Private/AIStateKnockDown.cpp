@@ -19,10 +19,10 @@ void UAIStateKnockDown::SetAttackInfo ( FAttackInfoInteraction& pAttackInfo )
 void UAIStateKnockDown::Enter ( UAICharacterAnimInstance* pAnimInstance )
 {
 	Super::Enter ( pAnimInstance );
+	animInstace->bFalling = false;
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKnockDown" ) , false );
 	currentTime = 0;
-	isKnockDown = true;
-
+	animInstace->bFalling = false;
 }
 
 void UAIStateKnockDown::Execute ( const float& deltatime )
@@ -31,19 +31,21 @@ void UAIStateKnockDown::Execute ( const float& deltatime )
 	if ( currentTime >= knockDownTime || WasHit )
 	{
 		WasHit = false;
+		isKnockDown = false;
+		animInstace->bKnockDown = false;
 		owner->PlayAnimMontage ( animInstace->standUpMontage );
 		currentTime = 0;
-		isKnockDown = false;
 	}
 }
 
 void UAIStateKnockDown::Exit ( )
 {
+	//종료 조건
+	//녹다운 상태일때 animInstace->standUpMontage 가 끝나면 실행
+	
 	WasHit = false;
-	isKnockDown = false;
 	currentTime = 0;
 	//animInstace->bKnockDown = false;
-	//owner->ChangeState ( owner->GetAIStateIdle ( ) );
 	Super::Exit ( );
 }
 
