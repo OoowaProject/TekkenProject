@@ -192,10 +192,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect" )
 	UNiagaraSystem* uNS_DefenceEffect;
 
-
-
-
-	
 	/************************************************************************/
 	/*                    애니메이션을 위한  작업입니다                     */
 	/************************************************************************/
@@ -300,10 +296,7 @@ public:
 	bool SetSelfReLinkTree ( TArray<int32> arrayTreeCommand );
 	bool SetLinkTree ( TArray<int32> TargetTree , TArray<int32> ConnectTree );
 
-
 	// 커맨드 트리 나누기 필요
-
-
 
 	/**
 	 * @title Owner State
@@ -384,6 +377,9 @@ public:
 	class USoundBase* uSoundHitLefthand;
 	UPROPERTY(EditDefaultsOnly, Category="Sound" )
 	class USoundBase* uSoundHitRightHand;
-	
 		
-};	            
+	float fHeightValue = 30;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category="ArrowsComp")
+	class UArrowComponent* RootArrowComp;
+};

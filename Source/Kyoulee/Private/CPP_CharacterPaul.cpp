@@ -17,6 +17,7 @@
 #include "Sound/SoundBase.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 #include "Internationalization/Text.h"
+#include "Components/ArrowComponent.h"
 
 // Sets default values
 ACPP_CharacterPaul::ACPP_CharacterPaul ( )
@@ -47,6 +48,11 @@ ACPP_CharacterPaul::ACPP_CharacterPaul ( )
 	collisionLower->SetBoxExtent ( FVector ( 319.717793 , 321.694333 , 336.888169 ) );
 	collisionLower->SetUsingAbsoluteRotation ( true );
 	collisionLower->SetRelativeLocation ( FVector ( 0.092165 , 531.000000 , 117.000000 ) );
+
+
+	RootArrowComp = CreateDefaultSubobject<UArrowComponent> ( TEXT("RootArrowComp"));
+	RootArrowComp->SetupAttachment(this->GetCapsuleComponent());
+	RootArrowComp->SetRelativeLocation( FVector( 0, 0, -60 ));
 }
 // Called when the game starts or when spawned
 void ACPP_CharacterPaul::BeginPlay ( )
@@ -89,8 +95,10 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	Super::Tick ( DeltaTime );
 	player1 = 0;
 	if ( this->GameModeMH->Player1 == this )
+	{
 		this->player1 = 1;
-
+		this->DebugMode = true;
+	}
 	this->currKeyValue = this->GetCurrInputKeyValue ( );
 
 	if ( sCurrCommand->NextTrees.Find ( currKeyValue ) )
@@ -145,7 +153,7 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	if ( this->bIsDead )
 		return;
 	// 다음 행동 정의
-	if (this->GetZValue() <= 10 )
+	if (this->GetZValue() < this->fHeightValue )
 		this->bFalling = false;
 	else
 		return;
@@ -421,10 +429,11 @@ void ACPP_CharacterPaul::CommandIdle ( )
    	if ( DebugMode )
    		UE_LOG ( LogTemp , Warning , TEXT ( "CommandIdle Pressed" ) );
 
-	if ( this->GetZValue() > 0)
+	if ( this->GetZValue() > fHeightValue )
 		return;
 	this->bCrouched =false;
 	this->bJumpping = false;
+	this->bFalling = false;
 	this->eCharacterState = ECharacterStateInteraction::GuardStand;
 }
 
@@ -511,7 +520,7 @@ void ACPP_CharacterPaul::CommandJump ( )
 	
 	eCharacterState = ECharacterStateInteraction::Air;
 
-	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 1000 ) , 50 );
+	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 400 ) , 50 );
 	this->bJumpping = true;
 	this->sFrameStatus.FrameUsing = 56;
 }
@@ -1098,9 +1107,12 @@ float ACPP_CharacterPaul::GetZValue ( )
 {
 	
 	FHitResult data;
-
-	bool hit = GetWorld()->LineTraceSingleByChannel(data,this->GetActorLocation(), FVector::UpVector * -1000, ECollisionChannel::ECC_Visibility );
-	//UE_LOG(LogTemp, Warning, TEXT("distance Z :  %f "), data.Distance);
+	FCollisionQueryParams collisionParams;
+	collisionParams.AddIgnoredActor ( this );
+	collisionParams.AddIgnoredActor ( this->aOpponentPlayer);
+	bool hit = GetWorld()->LineTraceSingleByChannel(data, RootArrowComp->GetComponentLocation() , RootArrowComp->GetComponentLocation ( ) + FVector::UpVector * -1000, ECollisionChannel::ECC_WorldStatic , collisionParams );
+	if (hit)
+		UE_LOG(LogTemp, Warning, TEXT("distance Z :  %f"), data.Distance);//, *(data.GetActor()->GetFName().ToString()));
 
 	if (hit)
 		return data.Distance;
@@ -1517,13 +1529,15 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 		return false;
 	}
-
+	float valie = this->GetZValue ( );
+	if ( valie > fHeightValue )
+	{
+		this->bFalling = true;
+		attackInfoHit.KnockBackDirection.Z = 300;
+	}
 	//this->SetActorRotation ( UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) ) );
 	this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeHitFrame;
 	this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , attackInfoHit.OppositeHitFrame );
-	float valie = this->GetZValue ( );
-	if ( valie > 10 )
-		this->bFalling = true;
 
 	iCurrFrame = 0;
 	// heart animation 추가하기
