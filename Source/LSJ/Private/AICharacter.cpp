@@ -1072,7 +1072,7 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 		}
 		else
 		{
-			if ( attackInfo.KnockBackDirection.Y > 0 || currentState == stateBound || currentState == stateHitFalling )
+			if ( attackInfo.KnockBackDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
 			{
 				ExitCurrentState ( ECharacterStateInteraction::HitGround );
 				if ( preState == stateHitFalling )
