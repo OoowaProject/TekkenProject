@@ -1145,27 +1145,24 @@ void ACPP_CharacterPaul::AnimationFrame ( )
 	else if ( !this->bFalling && this->fFallingValue > 0.0f )
 		this->fFallingValue -= 0.01f;
 
-	if ( bMoveTo )
+	if ( !this->ToLocationFrame.IsEmpty ( ) )
 	{
-		if ( !this->ToLocationFrame.IsEmpty ( ) )
-		{
-			FVector dir = this->ToLocationFrame.Pop ( );
-			locationlenght = dir;
-			// 			if ( dir.Length ( ) - 0.1 > locationlenght.Length ( ) || locationlenght.Length ( ) > dir.Length ( ) + 0.1)
-			// 			{
-			// 				if (dir.Length() >= locationlenght.Length())
-			// 					locationlenght += dir / 30;
-			// 				else
-			// 					locationlenght -= dir / 10;
-			// 			}
-						//AddMovementInput ( dir );
-			this->GetCapsuleComponent()->AddRelativeLocation( locationlenght );
-			//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
-		}
-		else
-		{
-			locationlenght *= 0;
-		}
+		FVector dir = this->ToLocationFrame.Pop ( );
+		locationlenght = dir;
+		// 			if ( dir.Length ( ) - 0.1 > locationlenght.Length ( ) || locationlenght.Length ( ) > dir.Length ( ) + 0.1)
+		// 			{
+		// 				if (dir.Length() >= locationlenght.Length())
+		// 					locationlenght += dir / 30;
+		// 				else
+		// 					locationlenght -= dir / 10;
+		// 			}
+					//AddMovementInput ( dir );
+		this->GetCapsuleComponent()->AddRelativeLocation( locationlenght );
+		//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
+	}
+	else
+	{
+		locationlenght *= 0;
 	}
 	// 인풋이 있을 경우 상대를 바라본다 
 	if ( currKeyValue )
@@ -1469,7 +1466,6 @@ void ACPP_CharacterPaul::SetAttackInfoOwnerOpposite ( )
 /************************************************************************/
 bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , ACPP_Tekken8CharacterParent* ownerHitPlayer )
 {
-	bMoveTo = false;
 	float falling = this->GetZValue ( );
 
 	if ( aMainCamera )
