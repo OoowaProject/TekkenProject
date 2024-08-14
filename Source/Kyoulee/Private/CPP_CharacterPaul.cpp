@@ -17,6 +17,7 @@
 #include "Sound/SoundBase.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 #include "Internationalization/Text.h"
+#include "Components/ArrowComponent.h"
 
 // Sets default values
 ACPP_CharacterPaul::ACPP_CharacterPaul ( )
@@ -47,6 +48,11 @@ ACPP_CharacterPaul::ACPP_CharacterPaul ( )
 	collisionLower->SetBoxExtent ( FVector ( 319.717793 , 321.694333 , 336.888169 ) );
 	collisionLower->SetUsingAbsoluteRotation ( true );
 	collisionLower->SetRelativeLocation ( FVector ( 0.092165 , 531.000000 , 117.000000 ) );
+
+
+	RootArrowComp = CreateDefaultSubobject<UArrowComponent> ( TEXT("RootArrowComp"));
+	RootArrowComp->SetupAttachment(this->GetCapsuleComponent());
+	RootArrowComp->SetRelativeLocation( FVector( 0, 0, -60 ));
 }
 // Called when the game starts or when spawned
 void ACPP_CharacterPaul::BeginPlay ( )
@@ -89,8 +95,10 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	Super::Tick ( DeltaTime );
 	player1 = 0;
 	if ( this->GameModeMH->Player1 == this )
+	{
 		this->player1 = 1;
-
+		this->DebugMode = true;
+	}
 	this->currKeyValue = this->GetCurrInputKeyValue ( );
 
 	if ( sCurrCommand->NextTrees.Find ( currKeyValue ) )
@@ -145,7 +153,7 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	if ( this->bIsDead )
 		return;
 	// 다음 행동 정의
-	if (this->GetZValue() <= 10 )
+	if (this->GetZValue() < this->fHeightValue )
 		this->bFalling = false;
 	else
 		return;
@@ -421,10 +429,11 @@ void ACPP_CharacterPaul::CommandIdle ( )
    	if ( DebugMode )
    		UE_LOG ( LogTemp , Warning , TEXT ( "CommandIdle Pressed" ) );
 
-	if ( this->GetZValue() > 0)
+	if ( this->GetZValue() > fHeightValue )
 		return;
 	this->bCrouched =false;
 	this->bJumpping = false;
+	this->bFalling = false;
 	this->eCharacterState = ECharacterStateInteraction::GuardStand;
 }
 
@@ -511,7 +520,7 @@ void ACPP_CharacterPaul::CommandJump ( )
 	
 	eCharacterState = ECharacterStateInteraction::Air;
 
-	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 300 ) , 50 );
+	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 400 ) , 50 );
 	this->bJumpping = true;
 	this->sFrameStatus.FrameUsing = 56;
 }
@@ -538,7 +547,7 @@ void ACPP_CharacterPaul::CommandMoveLateralUpDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame (FVector( 80 , -50 , 0 ), 20);
+	this->SetToRelativeLocationFrame (FVector( 80 , -50 , 0 ), 10);
 
 	// 애니매이션 실행 부분 있으면 만들기
 	//PlayMontageFrameSystem ( uMtgMoveLateral );
@@ -599,10 +608,10 @@ void ACPP_CharacterPaul::CommandMoveLateralDownDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame ( FVector ( 80 , 50 , 0 ) , 20 );
+	this->SetToRelativeLocationFrame ( FVector ( 80 , 50 , 0 ) , 10 );
 
 	// 애니매이션 실행 부분 있으면 만들기
-	//PlayMontageFrameSystem ( uMtgMoveLateral );
+	PlayMontageFrameSystem ( uMtgMoveLateral );
 
 	this->sFrameStatus.FrameUsing = 20;
 }
@@ -770,7 +779,7 @@ void ACPP_CharacterPaul::CommandBungGuan ( )
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 17 , 20, 20 , 0 ,0 , 0 ,0 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 200 , -5 , 60 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 120 , -5 , 60 ) + this->GetActorLocation ( );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 500 , 0 , 20 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 40 , 0 , 0 );
 
@@ -1098,8 +1107,13 @@ float ACPP_CharacterPaul::GetZValue ( )
 {
 	
 	FHitResult data;
+	FCollisionQueryParams collisionParams;
+	collisionParams.AddIgnoredActor ( this );
+	collisionParams.AddIgnoredActor ( this->aOpponentPlayer);
+	bool hit = GetWorld()->LineTraceSingleByChannel(data, RootArrowComp->GetComponentLocation() , RootArrowComp->GetComponentLocation ( ) + FVector::UpVector * -1000, ECollisionChannel::ECC_WorldStatic , collisionParams );
+	if (hit)
+		UE_LOG(LogTemp, Warning, TEXT("distance Z :  %f"), data.Distance);//, *(data.GetActor()->GetFName().ToString()));
 
-	bool hit = GetWorld()->LineTraceSingleByChannel(data,this->GetActorLocation(), FVector::UpVector * -1000, ECollisionChannel::ECC_Visibility );
 	if (hit)
 		return data.Distance;
 	return 0;
@@ -1131,46 +1145,44 @@ void ACPP_CharacterPaul::AnimationFrame ( )
 	else if ( !this->bFalling && this->fFallingValue > 0.0f )
 		this->fFallingValue -= 0.01f;
 
-	if ( bMoveTo )
+	if ( !this->ToLocationFrame.IsEmpty ( ) )
 	{
-		if ( !this->ToLocationFrame.IsEmpty ( ) )
-		{
-			FVector dir = this->ToLocationFrame.Pop ( );
-			locationlenght = dir;
-			// 			if ( dir.Length ( ) - 0.1 > locationlenght.Length ( ) || locationlenght.Length ( ) > dir.Length ( ) + 0.1)
-			// 			{
-			// 				if (dir.Length() >= locationlenght.Length())
-			// 					locationlenght += dir / 30;
-			// 				else
-			// 					locationlenght -= dir / 10;
-			// 			}
-						//AddMovementInput ( dir );
-			this->GetCapsuleComponent()->AddRelativeLocation( locationlenght );
-			//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
-		}
-		else
-		{
-			locationlenght *= 0;
-		}
+		FVector dir = this->ToLocationFrame.Pop ( );
+		locationlenght = dir;
+		// 			if ( dir.Length ( ) - 0.1 > locationlenght.Length ( ) || locationlenght.Length ( ) > dir.Length ( ) + 0.1)
+		// 			{
+		// 				if (dir.Length() >= locationlenght.Length())
+		// 					locationlenght += dir / 30;
+		// 				else
+		// 					locationlenght -= dir / 10;
+		// 			}
+					//AddMovementInput ( dir );
+		this->GetCapsuleComponent()->AddRelativeLocation( locationlenght );
+		//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
+	}
+	else
+	{
+		locationlenght *= 0;
 	}
 	// 인풋이 있을 경우 상대를 바라본다 
 	if ( currKeyValue )
 	{
 		// 
-		// 		FVector opponentPlayerRotator = aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) );
-		// 		opponentPlayerRotator.Z = GetActorLocation ( ).Z;
-		// 		FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-		// 		GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
-		//		GetMesh ( )->SetRelativeRotation ( lookRotator );
-		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
-		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+		FVector opponentPlayerRotator = aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) );
+		opponentPlayerRotator.Z = GetActorLocation ( ).Z;
+		FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
+		GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+		lookRotator.Yaw += -180 * player1;
+		GetMesh ( )->SetRelativeRotation ( lookRotator );
+// 		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+// 		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
 
 		//Wthis->SetActorRotation ( Lookrotation );
-
-		this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
-		Lookrotation.Yaw += -180 * player1;
-		Lookrotation.Pitch = 0;
-		this->GetMesh ( )->SetRelativeRotation ( Lookrotation );
+// 
+// 		this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+// 		Lookrotation.Yaw += -180 * player1;
+// 		Lookrotation.Pitch = 0;
+// 		this->GetMesh ( )->SetRelativeRotation ( Lookrotation );
 	}
 }
 
@@ -1454,7 +1466,6 @@ void ACPP_CharacterPaul::SetAttackInfoOwnerOpposite ( )
 /************************************************************************/
 bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , ACPP_Tekken8CharacterParent* ownerHitPlayer )
 {
-	bMoveTo = false;
 	float falling = this->GetZValue ( );
 
 	if ( aMainCamera )
@@ -1465,7 +1476,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 	{
 
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
-		this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , 2 );
+		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
 		// defense animation 추가하기
 		PlayMontageFrameSystem ( uMtgDefence );
 		// 디펜스 파티클
@@ -1479,7 +1490,8 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 	if ( falling < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && this->eCharacterState == ECharacterStateInteraction::GuardStand )
 	{
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
-		this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , 3 );
+		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
+
 		//LaunchCharacter ( (attackInfoHit.KnockBackDirection - this->GetActorLocation ( )) * 2 , true , true );
 		// defense animation 추가하기
 		if ( this->bCrouched )
@@ -1498,7 +1510,8 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 	if ( falling < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Lower && this->eCharacterState == ECharacterStateInteraction::GuardSit )
 	{
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
-		this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , 3 );
+		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
+
 		//LaunchCharacter ( (attackInfoHit.KnockBackDirection - this->GetActorLocation ( )) * 2 , true , true );
 		// 
 		// defense animation 추가하기
@@ -1512,13 +1525,15 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 		return false;
 	}
-
+	float valie = this->GetZValue ( );
+	if ( valie > fHeightValue )
+	{
+		this->bFalling = true;
+		attackInfoHit.KnockBackDirection.Z = 300;
+	}
 	//this->SetActorRotation ( UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) ) );
 	this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeHitFrame;
 	this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , attackInfoHit.OppositeHitFrame );
-	float valie = this->GetZValue ( );
-	if ( valie > 10 )
-		this->bFalling = true;
 
 	iCurrFrame = 0;
 	// heart animation 추가하기
