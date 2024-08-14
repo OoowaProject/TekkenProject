@@ -21,6 +21,7 @@ void UAIStateRun::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	Super::Enter ( pAnimInstance );
 	animInstace->bRun = true;
 	attackRange = owner->GetBlackboardComponent ( )->GetValueAsFloat(TEXT("AttackRange" ));
+	moveSpeed = 400.0f;
 }
 
 void UAIStateRun::Execute ( const float& deltatime )

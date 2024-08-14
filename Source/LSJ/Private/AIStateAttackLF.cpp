@@ -6,6 +6,8 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "CPP_CharacterPaul.h"
 #include "Kismet/GameplayStatics.h"
+#include "Animation/AnimTypes.h"
+#include "Components/CapsuleComponent.h"
 void UAIStateAttackLF::Enter ( UAICharacterAnimInstance* pAnimInstance )
 {
 	Super::Enter ( pAnimInstance );
@@ -21,16 +23,22 @@ void UAIStateAttackLF::Enter ( UAICharacterAnimInstance* pAnimInstance )
 		animInstace->PlayeAttackLFMontage ( );
 
 	owner->GetCurrentMontage ( )->GetSectionStartAndEndTime ( 0 , startFrame , endFrame );
-
 	TArray<const FAnimNotifyEvent*> notifyEvents;
 	//몽타지 노티파이의 끝나는 시간
 	owner->GetCurrentMontage ( )->GetAnimNotifies ( startFrame , endFrame , false , notifyEvents );
+	int count = 0;
 	for ( const FAnimNotifyEvent* NotifyEvent : notifyEvents )
 	{
-		endFrame = NotifyEvent->GetTriggerTime ( );
+		if ( count == 0 )
+			moveEndTime = NotifyEvent->GetTriggerTime ( );
+		else if ( count == 1 )
+			endFrame = NotifyEvent->GetTriggerTime ( );
+
+		count++;
 	}
 	totalTime = 0;
 	btest = false;
+	walkSpeed = 600.0f;
 }
 
 void UAIStateAttackLF::Execute ( const float& deltatime )
@@ -45,7 +53,12 @@ void UAIStateAttackLF::Execute ( const float& deltatime )
 		location.Z = 0;
 		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "range : %f " ) , FVector::Dist ( location , startLocation ) ) );
 	}
-		
+	if ( totalTime <= moveEndTime )
+	{
+		float moveSpeed = FMath::Lerp ( 0 , walkSpeed , (totalTime) / endFrame );
+		owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * moveSpeed * deltatime );
+		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "moveSpeed : %f " ) , moveSpeed ) );
+	}
 }
 
 void UAIStateAttackLF::Exit ( )

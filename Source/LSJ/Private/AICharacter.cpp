@@ -1148,5 +1148,14 @@ void AAICharacter::LookTarget (const float& deltaTime)
 }
 void AAICharacter::LookTarget ( const float& deltaTime , FRotator lookRotator)
 {
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+	GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	
+	/*GetCapsuleComponent ( )->SetWorldRotation ( FMath::RInterpTo ( GetCapsuleComponent ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetWorldRotation ( FMath::RInterpTo ( GetMesh ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	*/
+	
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
