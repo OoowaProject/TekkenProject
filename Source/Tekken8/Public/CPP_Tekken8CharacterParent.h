@@ -77,6 +77,7 @@ public:
 	FVector skellEffectLocation = FVector ( 0 );	// Effect Location 스킬 이펙트 및 콜리션 위치
 	FVector KnockBackDirection = FVector ( 0 );						// 넉백 수치 ( -1 , 1, z) : z = 높이 띄우는 값
 	FVector KnockBackFallingDirection = FVector ( 0 );
+	FVector KnockBackDefenceDir = FVector ( 0 );
 	/**
 	 * OwerFrame 스킬을 쓴 주체가 된다
 	 * @note 현재 공격이 가드  되었을 때 공격하는 캐릭터가 얻거나 잃는 프레임 : -값이 잃는 프레임
@@ -153,6 +154,7 @@ public:
 	class USoundBase* uHitSound;
 	class USoundBase* uDefenceSound;
 
+	
 
 	//이펙트 
 	TArray<class UNiagaraSystem*> niagaraSystemArray;
