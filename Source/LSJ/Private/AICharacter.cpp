@@ -258,12 +258,12 @@ AAICharacter::AAICharacter()
 	{
 		niagaraFXSystem = NE.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
 	if ( basicAttack1FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack1FXSystem = basicAttack1FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/MegaMagicVFXBundle/VFX/MagicalExplosionsVFX/VFX/FlameBlast/Systems/N_FlameBlast.N_FlameBlast'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) );
 	if ( basicAttack2FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack2FXSystem = basicAttack2FXSystemFinder.Object;
@@ -521,7 +521,8 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->bOnGround = true;
 		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
 	}
-
+	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
+	UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
 	if ( nullptr != aOpponentPlayer )
 	{
 		FString state = "";
@@ -585,6 +586,7 @@ void AAICharacter::Tick(float DeltaTime)
 		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
 
 	}
+
 }
 
 // Called to bind functionality to input
@@ -658,7 +660,7 @@ float AAICharacter::GetBTWDistance ( )
 	if ( nullptr == GetMesh ( ) )
 		return 0;
 	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
-	distanceBTW -= 80;
+	distanceBTW -= 50;
 	UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
 	return distanceBTW;
 }
@@ -1026,23 +1028,23 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 			{
 				//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
 				// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
-				//UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
-				//	this ,
-				//	niagara ,  // Niagara 시스템의 참조
-				//	attackInfo.skellEffectLocation,
-				//	FRotator::ZeroRotator ,
-				//		FVector ( 1.0f ) ,  // 기본 스케일
-				//		true ,  // AutoDestroy를 true로 설정
-				//		true ,  // AutoActivate를 true로 설정
-				//		ENCPoolMethod::None // 풀링 방식을 None으로 설정
-				//);
+				UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
+					this ,
+					niagara ,  // Niagara 시스템의 참조
+					attackInfo.skellEffectLocation,
+					FRotator::ZeroRotator ,
+						FVector ( 1.0f ) ,  // 기본 스케일
+						true ,  // AutoDestroy를 true로 설정
+						true ,  // AutoActivate를 true로 설정
+						ENCPoolMethod::None // 풀링 방식을 None으로 설정
+				);
 
 				// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
-				/*if ( niagaraComponent )
+				if ( niagaraComponent )
 				{
 					niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
 					niagaraComponent->SetAutoDestroy ( true );
-				}*/
+				}
 			}
 		}
 		if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )

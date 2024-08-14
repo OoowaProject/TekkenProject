@@ -167,6 +167,8 @@ class TEKKEN8_API ACPP_Tekken8CharacterParent : public ACharacter
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FVector currentVelocity;
 	// Sets default values for this character's properties
 	ACPP_Tekken8CharacterParent();
 
