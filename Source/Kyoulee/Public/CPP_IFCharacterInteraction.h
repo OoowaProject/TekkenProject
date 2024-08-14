@@ -24,8 +24,6 @@ enum eHitDecision
 	Other
 };
 
-
-
 /**
  * @Title 키에대한 입력처리를 위한 스트럭트입니다.
  */
