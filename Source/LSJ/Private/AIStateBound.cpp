@@ -24,7 +24,7 @@ void UAIStateBound::Enter ( UAICharacterAnimInstance* pAnimInstance )
 		return;
 	}
 
-
+	animInstace->bOnGround = false;
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsBound" ) , false );
 
 	{
@@ -50,13 +50,17 @@ void UAIStateBound::Enter ( UAICharacterAnimInstance* pAnimInstance )
 
 void UAIStateBound::Execute ( const float& deltatime )
 {
-	if ( animInstace->velocityZ < 0.1 && owner->GetCharacterMovement ( )->IsFalling())
+	//공중일때
+//	if ( animInstace->velocityZ < 0.1 && owner->GetCharacterMovement ( )->IsFalling())
+	if ( false == animInstace->bOnGround )
 	{
-		FVector Gravity = FVector ( 0 , 0 , -980.0f * 1.0f * deltatime ); // 기본 중력 값은 -980 cm/s^2
-		FVector NewLocation = owner->GetActorLocation ( ) + (Gravity);
-		owner->SetActorLocation ( NewLocation );
+		//FVector Gravity = FVector ( 0 , 0 , -980.0f * 1.0f * deltatime ); // 기본 중력 값은 -980 cm/s^2
+		//FVector NewLocation = owner->GetActorLocation ( ) + (Gravity);
+		//owner->SetActorLocation ( NewLocation );
 	}
-	else if ( false == owner->GetCharacterMovement ( )->IsFalling ( ) && owner->GetActorLocation ( ).Z < -80.f )
+
+//	else if ( false == owner->GetCharacterMovement ( )->IsFalling ( ) && owner->GetActorLocation ( ).Z < -80.f )
+	else if ( true == animInstace->bOnGround )
 	{
 		owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKnockDown" ) , true );
 		Exit ( );

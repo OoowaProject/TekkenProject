@@ -55,6 +55,10 @@ EBTNodeResult::Type UBTTaskNode_ChangeState::ExecuteTask ( UBehaviorTreeComponen
 			}
 			else if ( newStateClass == UAIStateBound::StaticClass ( ) )
 			{
+				if ( false == OwnerComp.GetBlackboardComponent ( )->GetValueAsBool ( TEXT ( "IsBound" ) ) )
+				{
+					return EBTNodeResult::Succeeded;
+				}
 				currentState = Enemy->GetAIStateBound ( );
 			}
 			else if ( newStateClass == UAIStateWalkCross::StaticClass ( ) )

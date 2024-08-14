@@ -258,12 +258,12 @@ AAICharacter::AAICharacter()
 	{
 		niagaraFXSystem = NE.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
 	if ( basicAttack1FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack1FXSystem = basicAttack1FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/MegaMagicVFXBundle/VFX/MagicalExplosionsVFX/VFX/FlameBlast/Systems/N_FlameBlast.N_FlameBlast'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) );
 	if ( basicAttack2FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack2FXSystem = basicAttack2FXSystemFinder.Object;
@@ -405,16 +405,20 @@ void AAICharacter::BeginPlay()
 	float cameraDirection = FVector::DotProduct ( UGameplayStatics::GetPlayerPawn ( GetWorld ( ) , 0 )->GetActorRightVector ( ) , GetActorLocation ( ) );
 	if ( cameraDirection > 0 )
 	{
+		startDirection *= .0;
 		aiController->SetBehaviorTree ( 1 );
 	}
 	else
 	{
+	
 		aiController->SetBehaviorTree ( 2 );
 	}
 	blackboardComp = aiController->GetBlackboardComponent ( );
 	check ( blackboardComp );
 
 	gameMode = Cast<AGameMode_MH> ( UGameplayStatics::GetGameMode ( GetWorld ( ) ) );
+
+	previousLocation = GetActorLocation ( );
 }
 
 void AAICharacter::Tick(float DeltaTime)
@@ -431,7 +435,8 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->StopAllMontages ( 0.0f );
 			animInstance->InitializeAnimation ( );
 			animInstance->bDie = false;
-
+			animInstance->bFalling = false;
+			animInstance->bKnockDown= false;
 			blackboardComp->SetValueAsBool ( TEXT ( "IsStart" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , false );
@@ -477,7 +482,10 @@ void AAICharacter::Tick(float DeltaTime)
 	//	//라운드 시작 n초뒤 한번
 	//}
 
-
+	//현재 이동 속도
+	FVector currentLocation = GetActorLocation ( );
+	currentVelocity = (currentLocation - previousLocation) / DeltaTime;
+	previousLocation = currentLocation;
 
 	UpdateState( DeltaTime );
 	
@@ -499,6 +507,22 @@ void AAICharacter::Tick(float DeltaTime)
 		AddMovementInput ( Gravity * DeltaTime,true);
 	}
 
+	//누워있을때 바닥인지 감지하는 line trace
+	FHitResult hit;
+	FVector traceStart = GetMesh ( )->GetBoneLocation ((TEXT ( "spine_01" )));//TEXT ( "spine_01" ) );
+	FVector traceEnd = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetUpVector () * -30.0f;
+	FCollisionQueryParams queryParams;
+	queryParams.AddIgnoredActor ( this );
+	GetWorld ( )->LineTraceSingleByChannel ( hit , traceStart , traceEnd , ECollisionChannel::ECC_Visibility , queryParams );
+	DrawDebugLine ( GetWorld ( ) , traceStart , traceEnd , hit.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 10.0f );
+	if ( hit.bBlockingHit  )// && false ==IsValid ( hit.GetActor()) )
+	{
+		if ( animInstance )
+			animInstance->bOnGround = true;
+		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
+	}
+	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
+	UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
 	if ( nullptr != aOpponentPlayer )
 	{
 		FString state = "";
@@ -562,6 +586,7 @@ void AAICharacter::Tick(float DeltaTime)
 		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
 
 	}
+
 }
 
 // Called to bind functionality to input
@@ -577,7 +602,7 @@ void AAICharacter::ChangeState ( IAIStateInterface* NewState )
 	//if ( NewState == stateHit && currentState != stateHit ) {
 	//	currentState->Exit ( );
 	//}
-
+	preState = currentState;
 	currentState = NewState;
 
 	if ( currentState ) {
@@ -635,7 +660,7 @@ float AAICharacter::GetBTWDistance ( )
 	if ( nullptr == GetMesh ( ) )
 		return 0;
 	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
-	distanceBTW -= 80;
+	distanceBTW -= 50;
 	UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
 	return distanceBTW;
 }
@@ -984,6 +1009,8 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 	//	CheckCollision ( bool guard , UBoxComponent * hitCollision )
 	if ( blackboardComp )
 	{
+		preState = currentState;
+
 		niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
 
 		
@@ -1045,9 +1072,11 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 		}
 		else
 		{
-			if ( attackInfo.KnockBackFallingDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+			if ( attackInfo.KnockBackDirection.Y > 0 || currentState == stateBound || currentState == stateHitFalling )
 			{
 				ExitCurrentState ( ECharacterStateInteraction::HitGround );
+				if ( preState == stateHitFalling )
+					stateHitFalling->WasHitFalling = true;
 				stateHitFalling->SetAttackInfo ( attackInfo );
 				blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
 			}
@@ -1113,9 +1142,22 @@ void AAICharacter::LookTarget (const float& deltaTime)
 	FVector opponentPlayerRotator = aOpponentPlayer->GetMesh()->GetBoneLocation((TEXT("head")));
 	opponentPlayerRotator.Z = GetActorLocation ( ).Z;
 	FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+
+	GetCapsuleComponent ( )->SetRelativeRotation (  lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
 void AAICharacter::LookTarget ( const float& deltaTime , FRotator lookRotator)
 {
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+	GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	
+	/*GetCapsuleComponent ( )->SetWorldRotation ( FMath::RInterpTo ( GetCapsuleComponent ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetWorldRotation ( FMath::RInterpTo ( GetMesh ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	*/
+	
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
