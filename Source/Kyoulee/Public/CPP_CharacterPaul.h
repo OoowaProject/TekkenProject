@@ -133,7 +133,10 @@ public:
 	void CommandMoveBack ();
 	void CommandMoveBackDash();
 	void CommandJump ( );
-	void CommandJumpForward ();
+	void CommandJumpForward ( );
+	void CommandJumpBackward ( );
+	void CommandJumpKneeKick ( );
+	void CommandJumpAxeKick ( );
 	void CommandMoveLateralUpDash ( );
 	void CommandMoveLateralUpLoop ( );
 	void CommandDownCrouch ( );
@@ -237,6 +240,12 @@ public:
 	class UAnimMontage* uMtgSitJab;
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgSitSpineKick;
+	// Jump
+	UPROPERTY (EditDefaultsOnly, Category="MontageList" )
+	class UAnimMontage* uMtgJumpAxeKick;
+	UPROPERTY (EditDefaultsOnly, Category="MontageList" )
+	class UAnimMontage* uMtgJumpKneeKick;
+	
 	// Defense
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgDefence;
@@ -279,16 +288,16 @@ public:
 
 	FCommandTreeNode* sCurrCommand;
 	FCommandTreeNode* sNextCommand;
-	FCommandTreeNode* sTempCommand;
+	FCommandTreeNode* sPrevCommand;
 	TArray<int32> sCurrCommandKeys;
 
 	int32 prevKeyValue = 0;
 	int32 currKeyValue = 0;
 	int32 nextKeyValue = 0;
 
-	FCommandTreeNode* CreateCommandTree ( int32 keyValue , int32 timingStart , int32 timingEnd , void (ACPP_CharacterPaul::* fptr)() );
-	FCommandTreeNode* AddCommandTree ( TMap<int32 , FCommandTreeNode*>& CurrCommandTree , int32 keyValue , int32 timingEnd , int32 timingAction , void(ACPP_CharacterPaul::* fptr)() );
-	FCommandTreeNode* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)() );//, bool loopCommand );
+	FCommandTreeNode* CreateCommandTree ( int32 keyValue , int32 timingStart , int32 timingEnd , void (ACPP_CharacterPaul::* fptr)(), bool loopCommand );
+	FCommandTreeNode* AddCommandTree ( TMap<int32 , FCommandTreeNode*>& CurrCommandTree , int32 keyValue , int32 timingEnd , int32 timingAction , void(ACPP_CharacterPaul::* fptr)(), bool loopCommand );
+	FCommandTreeNode* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)(), bool loopCommand );
 
 	bool CheckKeyArray ( );
 
