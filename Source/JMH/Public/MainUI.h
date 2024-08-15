@@ -87,13 +87,13 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UOverlay* Player1Input;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UOverlay* Player2Input;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UImage* img_Player1;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UImage* img_Player2;
 
 	//UPROPERTY(meta = (BindWidget))
