@@ -126,18 +126,18 @@ void UPlayerInfoUI::UpdateRoundImages(int32 RoundScoreA , int32 RoundScoreB)
 	{
 	case 1:
 		img_VictoryPoint1B->SetVisibility(ESlateVisibility::Visible);
-		GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("RoundScore1."));
+		//GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("RoundScore1."));
 		break;
 	case 2:
 		img_VictoryPoint1B->SetVisibility(ESlateVisibility::Visible);
 		img_VictoryPoint2B->SetVisibility(ESlateVisibility::Visible);
-		GEngine->AddOnScreenDebugMessage(-2 , 5.f , FColor::Red , TEXT("RoundScore2."));
+		//GEngine->AddOnScreenDebugMessage(-2 , 5.f , FColor::Red , TEXT("RoundScore2."));
 		break;
 	case 3:
 		img_VictoryPoint1B->SetVisibility(ESlateVisibility::Visible);
 		img_VictoryPoint2B->SetVisibility(ESlateVisibility::Visible);
 		img_VictoryPoint3B->SetVisibility(ESlateVisibility::Visible);
-		GEngine->AddOnScreenDebugMessage(-3 , 5.f , FColor::Red , TEXT("RoundScore3."));
+		//GEngine->AddOnScreenDebugMessage(-3 , 5.f , FColor::Red , TEXT("RoundScore3."));
 		break;
 	default:
 		break;

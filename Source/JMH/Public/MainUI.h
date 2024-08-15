@@ -87,13 +87,13 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UOverlay* Player1Input;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UOverlay* Player2Input;
 	
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UImage* img_Player1;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (BindWidget))
 	class UImage* img_Player2;
 
 	//UPROPERTY(meta = (BindWidget))
@@ -237,6 +237,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)  
 	void OnUnHoveredPaul();
+
+	UFUNCTION(BlueprintCallable)  
+	void OnHoveredKazuya();
+
+	UFUNCTION(BlueprintCallable)  
+	void OnUnHoveredKazuya();
 
 	UPROPERTY()
 	bool bPlayer1Input=true;
