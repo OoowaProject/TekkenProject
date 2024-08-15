@@ -255,11 +255,11 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//5초후 라운드 시작 //인풋 막아두기rl
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &AGameMode_MH::RoundStart , 2.00f , false);
 
-		GEngine->AddOnScreenDebugMessage(-5 , 5.f , FColor::Red , TEXT("RoundStart"));
+		//GEngine->AddOnScreenDebugMessage(-5 , 5.f , FColor::Red , TEXT("RoundStart"));
 		break;
 
 	case EGameState::InProgress:
-		GEngine->AddOnScreenDebugMessage(-9 , 5.f , FColor::Red , TEXT("InProgress"));
+		//GEngine->AddOnScreenDebugMessage(-9 , 5.f , FColor::Red , TEXT("InProgress"));
 
 	//게임 진행 중
 	//HP체크,타임체크
@@ -289,7 +289,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//5초후 라운드 체크-> 다시시작 or 게임오버
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &AGameMode_MH::CheckForGameOver , 3.0f , false);
 	//CheckForGameOver();
-		GEngine->AddOnScreenDebugMessage(-6 , 5.f , FColor::Red , TEXT("RoundEnd"));
+		//GEngine->AddOnScreenDebugMessage(-6 , 5.f , FColor::Red , TEXT("RoundEnd"));
 		break;
 
 	case EGameState::GameOver:
@@ -368,7 +368,7 @@ void AGameMode_MH::CheckForGameOver()
 {
 	if (IsGameOverConditionMet())
 	{
-		GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("GameOver"));
+		//GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("GameOver"));
 		SetGameState(EGameState::GameOver);
 	}
 	else
