@@ -74,7 +74,7 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
 	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
 	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
-	owner->ChangeCollisionResponse ( );
+	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
 	UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , knockbackDirection.X , knockbackDirection.Y , knockbackDirection.Z );
 	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
 
@@ -193,7 +193,8 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 
 void UAIStateHitFalling::Exit ( )
 {
-	owner->ChangeCollisionResponse ( );
+	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Block );
+
 	if ( WasKnockDown ) //누워있을때 맞은경우 다음 상태 녹다운
 	{
 		owner->GetAIStateKnockDown ( )->WasHit = true;
