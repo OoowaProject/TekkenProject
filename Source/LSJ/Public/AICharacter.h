@@ -129,6 +129,7 @@ public:
 	class USoundBase* hitWeakSFV;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	FVector RelativePointVector ( float x , float y , float z );
 	void ChangeCollisionResponse ( );
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
