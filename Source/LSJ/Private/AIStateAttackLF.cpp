@@ -57,7 +57,7 @@ void UAIStateAttackLF::Execute ( const float& deltatime )
 	{
 		float moveSpeed = FMath::Lerp ( 0 , walkSpeed , (totalTime) / endFrame );
 		owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * moveSpeed * deltatime );
-		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "moveSpeed : %f " ) , moveSpeed ) );
+		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "moveSpeed : %f " ) , moveSpeed ) );
 	}
 }
 
