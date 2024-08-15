@@ -1657,7 +1657,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 	iCurrFrame = 0;
 	// heart animation 추가하기
-	if ( this->Hp > 0 && !falling )
+	if ( this->Hp > 0 )
 	{
 		if ( attackInfoHit.hitMontage != nullptr ) //내가 준 몽타지 실행
 		{
