@@ -237,7 +237,7 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0, backkey, 0, backkey } , 0 , 0 , 12 , &ACPP_CharacterPaul::CommandEnd, false );
 
 	this->AddCommandBaseTree ( { 0 , backkey } , backkey + LP, 4, 10,&ACPP_CharacterPaul::CommandSangBong1, false );
-	this->AddCommandBaseTree ( { 0 , backkey,  backkey + LP } , backkey + RP , 4 , 10 , &ACPP_CharacterPaul::CommandSangBong2 , false );
+	this->AddCommandBaseTree ( { 0 , backkey,  backkey + LP } , backkey + RP , 0 , 10 , &ACPP_CharacterPaul::CommandSangBong2 , false );
 	this->AddCommandBaseTree ( { 0 , backkey,  backkey + LP, backkey + RP } , 0 , 0 , 12 , &ACPP_CharacterPaul::CommandEnd , false );
 
 	/**
@@ -298,8 +298,8 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->SetLinkTree ( { 0 , downkey, downLKkey } , { 0 ,downkey, downkey} );
 
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
-	this->AddCommandBaseTree ( { 0 ,downkey, downLPkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
-	this->AddCommandBaseTree ( { 0 ,downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, i3key } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, i1key } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
 
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , i3key , 0 , 3 , &ACPP_CharacterPaul::CommandDownForwardCrouch , true );
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, i3key } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
@@ -336,17 +336,12 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey } );
 
 // 
-//  	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey } , downLKkey , 1 , 2 , &ACPP_CharacterPaul::CommandSitSpineKick );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey } , downLKkey , 1 , 2 , & ACPP_CharacterPaul::CommandDownCrouch );
-// 	SetSelfReLinkTree ( { 0 ,downkey, downkey, downkey, downLKkey, downLKkey } );
-// 	this->SetLinkTree ( { 0, downkey, downkey, downkey, downLKkey, downLKkey } , { 0, downkey, downkey } );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandEnd );
-// 
-// // 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey } , downLKkey , 0 , 0  , &ACPP_CharacterPaul::CommandDownCrouch );
-// // 	SetSelfReLinkTree ( { 0,downkey, downkey, downkey, downLKkey, downLKkey } );
-// 	//this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey, downLKkey } , LK , 0 , 0 , 0 , & ACPP_CharacterPaul::CommandEnd );
-// 
+// //  
+  	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downLKkey , 1 , 2 , &ACPP_CharacterPaul::CommandSitSpineKick, false );
+ 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch, false );
+
+	this->SetLinkTree ( { 0 ,downkey, downkey, downLKkey } , { 0 ,downkey, downLKkey } );
+
 // 
 // 	// Branch Add function 만들기 하나의 가지로 합쳐주는 함수이다.
 // 	// 현재 겹치는 부분 함수들 목록
@@ -375,64 +370,39 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 // 	 */
 // 	// LeftRightCombo
 // 	// LeftRight 1 
-// 	this->AddCommandBaseTree ( { 0 } , LP , 0 , 3 , & ACPP_CharacterPaul::CommandLeadJab );
-// 	this->AddCommandBaseTree ( { 0, LP } , 0 , 3 , 5 , & ACPP_CharacterPaul::CommandEnd );
-// 	this->AddCommandBaseTree ( { 0, LP } , LP , 3 , 5 , & ACPP_CharacterPaul::CommandStarTest2 );
-// 	this->AddCommandBaseTree ( { 0, LP, LP } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd );
-// 	SetSelfReLinkTree ( { 0, LP, LP} );
-// 
-// 	this->AddCommandBaseTree ( { 0, LP } , RP , 3 , 5 , &ACPP_CharacterPaul::CommandCrossStaight );
-// 	//this->AddCommandBaseTree ( { 0, LP, RP } , RP , 0 , 0 , 0 , &ACPP_CharacterPaul::CommandEnd );
-// 	//SetSelfReLinkTree ( { 0, LP, RP, RP } );
-// 
-// 	this->AddCommandBaseTree ( { 0 } , RP , 0 , 3 , & ACPP_CharacterPaul::CommandCrossStaight );
-// 	this->AddCommandBaseTree ( { 0, RP } , 0 , 3 , 5 , & ACPP_CharacterPaul::CommandEnd );
-// 	this->AddCommandBaseTree ( { 0, RP } , RP , 3 , 5 , & ACPP_CharacterPaul::CommandStarTest2 );
-// 	this->AddCommandBaseTree ( { 0, RP, RP } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd );
-// 	SetSelfReLinkTree ( { 0, RP, RP } );
-// 	
-// 
+	this->AddCommandBaseTree ( { 0 } , LP , 0 , 3 , & ACPP_CharacterPaul::CommandLeadJab , false );
+	this->AddCommandBaseTree ( { 0, LP } , 0 , 3 , 5 , & ACPP_CharacterPaul::CommandEnd , false );
+
+	this->AddCommandBaseTree ( { 0, LP } , RP , 3 , 5 , &ACPP_CharacterPaul::CommandCrossStaight, false );
+	this->AddCommandBaseTree ( { 0, LP, RP } , RP , 0 , 5 , &ACPP_CharacterPaul::CommandEnd, false );
+
+	this->AddCommandBaseTree ( { 0 } , RP , 0 , 3 , & ACPP_CharacterPaul::CommandCrossStaight, false );
+ 	this->AddCommandBaseTree ( { 0, RP } , 0 , 3 , 5 , & ACPP_CharacterPaul::CommandEnd, false );
+
 // 	/**
 // 	 * Kick
 // 	 */
-// 
-// 	this->AddCommandBaseTree ( { 0 } , LK , 0 , 3 , &ACPP_CharacterPaul::CommandJingun );
-// 	this->AddCommandBaseTree ( { 0, LK } , LK , 3 , 5 , &ACPP_CharacterPaul::CommandStarTest2 );
-// 	this->AddCommandBaseTree ( { 0, LK, LK } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd );
-// 	SetSelfReLinkTree ( { 0, LK, LK } );
-// 
-// 	this->AddCommandBaseTree ( { 0 } , RK , 0 , 3 , &ACPP_CharacterPaul::CommandHighKick );
-// 	this->AddCommandBaseTree ( { 0, RK } , RK , 3 , 5 , &ACPP_CharacterPaul::CommandStarTest2 );
-// 	this->AddCommandBaseTree ( { 0, RK, RK } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd );
-// 	SetSelfReLinkTree ( { 0, RK, RK } );
-// 
-// //	this->AddCommandBaseTree ( { 0, LP } , 0 , 0 ,  0 , &ACPP_CharacterPaul::CommandStar );
-// // 	SetSelfReLinkTree ( { 0, LP, 0 } );
-// // 	// LeftRight 2
-// // 	this->AddCommandBaseTree ( { 0, LP, 0 } , RP , 2 , 4 , 0 , &ACPP_CharacterPaul::CommandStar );
-// 
-// 
-// 
-// 
-// 	this->AddCommandBaseTree ( { 0 } , forwardkey + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBungGuan );
-// 	this->AddCommandBaseTree ( { 0, forwardkey + RP } , forwardkey + RP , 0 , 3 , &ACPP_CharacterPaul::CommandBungGuan );
-// 	this->AddCommandBaseTree ( { 0, forwardkey + RP } ,0 , 0 , 3 , &ACPP_CharacterPaul::CommandBungGuan );
-// 
+ 
+	this->AddCommandBaseTree ( { 0 } , LK , 0 , 3 , &ACPP_CharacterPaul::CommandJingun, false );
+	this->AddCommandBaseTree ( { 0, LK } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd, false);
+ 
+	this->AddCommandBaseTree ( { 0 } , RK , 0 , 3 , &ACPP_CharacterPaul::CommandHighKick , false );
+	this->AddCommandBaseTree ( { 0, RK } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd, false );
+
+	this->AddCommandBaseTree ( { 0, downkey, i3key } , forwardkey , 0 , 5 , & ACPP_CharacterPaul::CommandStar, false );
+	this->AddCommandBaseTree ( { 0, downkey, i3key, forwardkey } , forwardkey + RP , 0 , 7 , & ACPP_CharacterPaul::CommandBungGuan, false );
+
 // 	/**
 // 	 * combo Command
 // 	 */
-// 
-// 	this->AddCommandBaseTree ( { 0, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
-// 	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
+ 	this->AddCommandBaseTree ( { 0 } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
+ 	this->AddCommandBaseTree ( { 0, i3key + RP } , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
 
 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
 // // 
 // // 
-// // 	this->AddCommandBaseTree ( { 0 } , backkey + LP , 0 , 3 , & ACPP_CharacterPaul::CommandSangBong1 );
-// // 	this->AddCommandBaseTree ( { 0, backkey + LP} , backkey + LP , 3 , 10 , &ACPP_CharacterPaul::CommandStar );
-// // 	this->AddCommandBaseTree ( { 0, backkey + LP  } , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
-// // 	this->SetSelfReLinkTree( { 0, backkey + LP } );
+
 // 
 // 	this->AddCommandBaseTree ( { 0, backkey, backkey + LP, backkey + LP } , backkey + RP , 2 , 30 , & ACPP_CharacterPaul::CommandSangBong2 );
 // 	this->AddCommandBaseTree ( { 0, backkey, backkey + LP ,  backkey + RP } , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
@@ -1297,7 +1267,8 @@ void ACPP_CharacterPaul::AnimationFrame ( )
 		FVector dir = this->ToLocationFrame.Pop ( );
 		locationlenght = dir;
 		//this->GetCapsuleComponent()->AddWorldTransform(FTransform(this->GetActorRotation(),locationlenght, this->GetActorScale3D()));// AddRelativeLocation( locationlenght );
-		this->GetCapsuleComponent()->AddWorldTransform(FTransform(FRotator::ZeroRotator,locationlenght, FVector::ZeroVector));// AddRelativeLocation( locationlenght );
+		// this->GetCapsuleComponent()->AddWorldTransform(FTransform(FRotator::ZeroRotator,locationlenght, FVector::ZeroVector));
+		this->GetCapsuleComponent( )->AddRelativeLocation( locationlenght );
 		//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
 	}
 	else
@@ -1672,8 +1643,12 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		this->bFalling = true;
 		this->GetVelocity ( ).Set ( 0 , 0 , 0 );
 	
-		attackInfoHit.KnockBackDirection.Z = 300;
+		this->GetCapsuleComponent()->AddForce(FVector(0,0,3000),FName("pelvis"), true);
+		attackInfoHit.KnockBackDirection.X = 0;
+		attackInfoHit.KnockBackDirection.Y = 0;
+		attackInfoHit.KnockBackDirection.Z = 0;
 		attackInfoHit.OppositeHitFrame += 10;
+		this->uAnim->StopAllMontages ( 0.01f );
 		this->ToLocationFrame.Empty();
 	}
 	//this->SetActorRotation ( UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) ) );
@@ -1729,6 +1704,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 				niagaraComponent->SetAutoDestroy ( true );
 			}
 		}
+		UE_LOG ( LogTemp , Warning , TEXT ( "test : %d" ) , attackInfoHit.niagaraSystemArray.Num() );
 		attackInfoHit.niagaraSystemArray.Empty ( );
 	}
 	//파티클 시스템
@@ -1755,7 +1731,7 @@ void  ACPP_CharacterPaul::CommentHitFrameExecute ( )
 
 	// 맞는 부분 실행
 	TArray<TEnumAsByte<EObjectTypeQuery>> traceObjectTypes;
-	traceObjectTypes.Add ( UEngineTypes::ConvertToObjectType ( ECollisionChannel::ECC_Pawn ) );
+	traceObjectTypes.Add ( UEngineTypes::ConvertToObjectType ( ECollisionChannel::ECC_Pawn) );
 	TArray<AActor*> ignoreActors;
 	ignoreActors.Init ( this , 1 );
 	TArray<AActor*> outActors;
@@ -1784,7 +1760,7 @@ void  ACPP_CharacterPaul::CommentHitFrameExecute ( )
 		// 아무도 안맞았을때
 		sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerMissFrame;
 	}
-
+	sAttackInfo.niagaraSystemArray.Empty();
 	if ( sAttackInfo.DamagePoint == EDamagePointInteraction::Top )
 		sAttackInfo.debugColor = FColor ( 255 , 0 , 0 );
 	else if ( sAttackInfo.DamagePoint == EDamagePointInteraction::Middle )
