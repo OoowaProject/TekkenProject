@@ -189,7 +189,7 @@ public:
 	//공격받았을때 델리게이트 
 	UPROPERTY(BlueprintAssignable)
     FOnHit OnHit;
-	UBlackboardComponent* GetBlackboardComponent()
+	class UBlackboardComponent* GetBlackboardComponent()
 	{
 		return blackboardComp;
 	};

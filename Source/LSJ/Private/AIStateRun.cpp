@@ -47,6 +47,7 @@ void UAIStateRun::Execute ( const float& deltatime )
 void UAIStateRun::Exit ( )
 {
 	animInstace->bRun = false;
+	owner->SetStateIdle ( );
 	owner->GetBlackboardComponent ( )->SetValueAsEnum ( TEXT ( "ERandomAttack" ) , owner->ChangeAttackMotionDependingOpponentState ( ) );
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "InAttackRange" ) , true );
 	Super::Exit ( );

@@ -61,9 +61,9 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 
 	// 계산된 방향 벡터에 속도를 곱합니다.
 	FVector LaunchVelocity = LaunchDirection * LaunchSpeed;
+	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 500000000000000.0f ) , NAME_None , true );
 
-
-	//owner->LaunchCharacter ( FVector (0,0 ,400) , true , true );
+	//owner->LaunchCharacter ( FVector (0,0 ,40000000) , true , true );
 	//owner->GetMesh ( )->AddForceAtLocation ( FVector ( 0 , -10 , 2000 ) ,owner->aOpponentPlayer->GetActorLocation ( ) );
 	
 
@@ -105,8 +105,16 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	
 	// 캐릭터를 날립니다. (Z축 방향으로는 원하는 높이를 추가할 수 있음)
 	//owner->LaunchCharacter ( FVector ( -4400 , -4400 , 400 ) , true , true );
-	owner->GetCapsuleComponent ( )->AddForce( FVector ( 0.0f , 0.0f , 50000.0f ), NAME_None , true );;
-	//owner->GetCapsuleComponent ( )->AddForceAtLocationLocal ( FVector ( 0 , 0 , 100.0f ),FVector(0,0,100));
+
+	//FVector knockbackDirection = owner->GetActorForwardVector() * -1.0f * 100.0f;
+	//knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
+	//owner->GetCapsuleComponent ( )->AddForce( knockbackDirection , NAME_None , false );
+
+
+
+
+	//owner->GetCapsuleComponent ( )->AddForceAtLocation ( FVector ( 0 , 0 , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ),owner->aOpponentPlayer->GetActorLocation());
 	//owner ->GetMesh()->AddForceAtLocationLocal(FVector(0,0,0),)
 	//owner->LaunchCharacter ( LaunchVelocity , true , true );
 	UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , LaunchVelocity.X , LaunchVelocity.Y , LaunchVelocity.Z );
@@ -114,8 +122,19 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	currentFrame = 0;
 	targetFrame = attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame;
 	isExitOneMore = false;
-		//owner->GetCharacterMovement ( )->AddImpulse ( attackInfoArray[0].KnockBackDirection * 100.0f , true );
-		//owner->LaunchCharacter ( attackInfoArray[0].KnockBackDirection , true , true );
+
+	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_EngineTraceChannel4 , ECollisionResponse::ECR_Ignore );
+	StartLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
+	FVector relativePoint =
+		(
+			owner->GetActorForwardVector ( ) *-1.0f* 2.0 * owner->GetCapsuleComponent ( )->GetMass ( ) +
+			owner->GetActorRightVector ( ) * 0.0* owner->GetCapsuleComponent ( )->GetMass ( ) +
+			owner->GetActorUpVector ( ) * 3.0* owner->GetCapsuleComponent ( )->GetMass ( )
+		);
+	arrivedLocation = StartLocation + relativePoint;
+	LerpAlpha = 0.0f;
+	LerpSpeed = 0.1f;
+
 }
 
 void UAIStateHitFalling::Execute ( const float& deltatime )
@@ -123,13 +142,13 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 	currnetLocationZ = owner->GetMesh ( )->GetSocketLocation ( TEXT ( "root" ) ).Z;
 	if( maxLocationZ < currnetLocationZ )
 		maxLocationZ = currnetLocationZ;
-
+	
 	//if ( false == owner->GetCharacterMovement ( )->IsFalling ( )&& maxLocationZ - minLocationZ > 5.f )
 	//spine_01 의 위치가 -85.f 보다 작을 때 해당 애니메이션이 끝남
-
+	currentFrame++;
 	if ( WasKnockDown ) // 누워있을때 타격 되면
 	{
-		currentFrame++;
+		
 		if ( targetFrame <= currentFrame && !isExitOneMore )
 		{
 			isExitOneMore = true;
@@ -143,6 +162,27 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 		{
 			Exit ( );
 		}
+	}
+
+	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
+	{
+		LerpAlpha += deltatime * LerpSpeed;
+		FVector CurrentLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
+		FVector NewLocation = FMath::Lerp ( StartLocation , arrivedLocation , LerpAlpha ) - CurrentLocation;
+		owner->GetCapsuleComponent ( )->AddRelativeLocation ( NewLocation );
+	}
+
+	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
+	{
+		FVector relativePoint =
+			(
+				owner->GetActorForwardVector ( ) * 200.0 +
+				owner->GetActorRightVector ( ) * 0.0 +
+				owner->GetActorUpVector ( ) * 300.0
+			);
+		//owner->GetActorForwardVector() * 
+		
+		//owner->GetCapsuleComponent ( )->AddRelativeLocation ( FMath::Lerp ( FVector ( 0 , 0 , 0 ) , relativePoint , ((float)currentFrame / attackInfoArray[0].OppositeHitFrame)) );
 	}
 }
 
