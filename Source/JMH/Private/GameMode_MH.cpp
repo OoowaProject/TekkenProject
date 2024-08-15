@@ -11,6 +11,7 @@
 #include "PlayerInfoUI.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "Components/TextBlock.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
@@ -174,6 +175,7 @@ void AGameMode_MH::Tick(float DeltaTime)
 		{
 			//타임 체크
 			CountDown(DeltaTime);
+			
 		}
 	}
 }
@@ -194,10 +196,12 @@ void AGameMode_MH::CountDown(float DeltaTime)
 			}
 			SetGameState(EGameState::RoundEnd);
 		}
+		
 		else
 		{
 			inGameUI->UpdateTimerDisplay(gameTimer);
 		}
+		
 	}
 }
 
