@@ -96,11 +96,11 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	
 	if (this->bIsDead)
 		return;
-	if ( this->GameModeMH->Player1 == this )
-	{
-		this->player1 = 1;
-		this->DebugMode = true;
-	}
+// 	if ( this->GameModeMH->Player1 == this )
+// 	{
+// 		this->player1 = 1;
+// 		this->DebugMode = true;
+// 	}
 	this->currKeyValue = this->GetCurrInputKeyValue ( );
 	if (currKeyValue != prevKeyValue || sCurrCommand->NextTrees.Find ( prevKeyValue ) )
 	{
@@ -383,6 +383,12 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 
 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
+
+	this->AddCommandBaseTree ( { 0 ,downkey } , downkey + RK , 4 , 6 , & ACPP_CharacterPaul::CommandMtgLuOu1 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK } , downkey + RP , 0 , 16 , & ACPP_CharacterPaul::CommandMtgLuOu2 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK ,  downkey + RP } , RP + LP , 0 , 16 , & ACPP_CharacterPaul::CommandMtgLuOu3 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK ,  downkey + RP, RP + LP } , 0 , 0 , 6 , & ACPP_CharacterPaul::CommandEnd , false );
+
 // // 
 // // 
 
@@ -1099,9 +1105,9 @@ void ACPP_CharacterPaul::CommandSangBong1 ( )
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0.5;
-	sAttackInfo.cameraZoom = 0.1;
-	sAttackInfo.cameraDelay = 0.3;
+	sAttackInfo.cameraShake = 0.0;
+	sAttackInfo.cameraZoom = 0.0;
+	sAttackInfo.cameraDelay = 0.0;
 
 	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 0 ) , 5 );
 
@@ -1135,9 +1141,9 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0;
-	sAttackInfo.cameraZoom = 0;
-	sAttackInfo.cameraDelay = 0;
+	sAttackInfo.cameraShake = 3.1;
+	sAttackInfo.cameraZoom = 0.9;
+	sAttackInfo.cameraDelay = 0.3;
 
 	this->SetToRelativeLocationFrame ( FVector ( 100 , 0 , 0 ) , 10 );
 
@@ -1191,20 +1197,106 @@ void ACPP_CharacterPaul::CommandBackJilPung ( )
 void ACPP_CharacterPaul::CommandMtgLuOu1 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu1 Pressed" ) );
-	
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo1 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackLower;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Lower , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , -40 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 30 , 0 , 0 ) , 3 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu1 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitLeftFoot;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 void ACPP_CharacterPaul::CommandMtgLuOu2 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu2 Pressed" ) );
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo2 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 100 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 50 , 0 , 0 ) , 3 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu2 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitRightHand;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 void ACPP_CharacterPaul::CommandMtgLuOu3 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu2 Pressed" ) );
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo3 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 70 , 0 , 0 ) , 4 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu3 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitRightFoot;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 float ACPP_CharacterPaul::GetZValue ( )
