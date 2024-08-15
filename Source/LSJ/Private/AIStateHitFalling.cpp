@@ -68,7 +68,7 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	
 
 	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 10000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
-	FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 5000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
 	// 기본
 	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
 	knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;

@@ -49,7 +49,7 @@ AAICharacter::AAICharacter()
 		GetMesh ( )->SetAnimInstanceClass ( animFinder.Class );
 	}
 	GetMesh ( )->SetRelativeScale3D ( FVector ( 0.1f , 0.1f , 0.1f ) );
-	GetMesh( )->SetRelativeLocation(FVector( -20.0 ,0,-90.f));
+	GetMesh( )->SetRelativeLocation(FVector( -20.0 ,0,-85.f));
 	GetMesh ( )->SetRelativeRotation ( FRotator (  0, -90.f , 0 ) );
 
 	collisionLH = CreateDefaultSubobject<USphereComponent> ( TEXT ( "collisionLH" ) );
@@ -271,7 +271,7 @@ AAICharacter::AAICharacter()
 	{
 		basicAttack2FXSystem = basicAttack2FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> blockedFXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Sci-Fi_Starter_VFX_Pack_Niagara/Niagara/Sparks/NS_Sparks_26.NS_Sparks_26'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> blockedFXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/Pack_Effects_1/Air_Magic/VFX_Niagara/NS_Air_Magic_Splash.NS_Air_Magic_Splash'" ) );
 	if ( blockedFXSystemFinder.Succeeded ( ) )
 	{
 		blockedFXSystem = blockedFXSystemFinder.Object;
@@ -322,7 +322,7 @@ AAICharacter::AAICharacter()
 	//앞으로만 이동되게 하는 설정
 	//GetCharacterMovement ( )->bOrientRotationToMovement = true;
 	eCharacterState = ECharacterStateInteraction::Idle;
-
+	currentState = stateIdle;
 	AIControllerClass = AAICharacterController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
@@ -610,6 +610,19 @@ void AAICharacter::Tick(float DeltaTime)
 	}
 
 }
+
+FVector AAICharacter::RelativePointVector ( float x , float y , float z )
+{
+	FVector relativePoint =
+		(
+			this->GetActorForwardVector ( ) * x +
+			this->GetActorRightVector ( ) * y +
+			this->GetActorUpVector ( ) * z
+		);
+
+	return relativePoint;
+}
+
 void AAICharacter::ChangeCollisionResponse ( )
 {
 	if ( GetCapsuleComponent ( )->GetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 ) == ECollisionResponse::ECR_Ignore )
@@ -726,7 +739,8 @@ void AAICharacter::OnAttackCollisionLF ( )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLFSFV );
 				}
-			
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
+
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
@@ -768,6 +782,7 @@ void AAICharacter::OnAttackCollisionRF ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRFSFV );
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -811,6 +826,7 @@ void AAICharacter::OnAttackCollisionLH ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLHSFV );
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -853,7 +869,7 @@ void AAICharacter::OnAttackCollisionRH ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRHSFV );
-
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
@@ -1041,92 +1057,105 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 
 		niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
 
-		
-		Hp = FMath::Clamp(Hp-attackInfo.DamageAmount,0.0f,MaxHp);
-
-		gameMode = Cast<AGameMode_MH>(GetWorld()->GetAuthGameMode());
-		if( gameMode )
-			gameMode->UpdatePlayerHP(this,Hp);
-		// 확대할 위치 , 줌 정도 0.5 기본 , 흔들림정도 , 흔들림 시간
-		aMainCamera->RequestZoomEffect ( GetActorLocation ( ) , 0.5f , 10.0f , 0.3f );
-
-		if ( false == attackInfo.niagaraSystemArray.IsEmpty ( ) )
+		//아이들 상태면 가드 상태로 전환한다.
+		if ( attackInfo.DamagePoint!=EDamagePointInteraction::Lower && (preState == stateIdle || preState == stateGuard) )
 		{
-			for ( auto* niagara : attackInfo.niagaraSystemArray )
-			{
-				//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
-				// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
-				UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
-					this ,
-					niagara ,  // Niagara 시스템의 참조
-					attackInfo.skellEffectLocation,
-					FRotator::ZeroRotator ,
-						FVector ( 1.0f ) ,  // 기본 스케일
-						true ,  // AutoDestroy를 true로 설정
-						true ,  // AutoActivate를 true로 설정
-						ENCPoolMethod::None // 풀링 방식을 None으로 설정
-				);
+			niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , blockedFXSystem , attackInfo.skellEffectLocation );
+			ExitCurrentState ( ECharacterStateInteraction::HitGround );
+			stateGuard->SetAttackInfo ( attackInfo );
+			blackboardComp->SetValueAsBool ( TEXT ( "IsGuard" ) , true );
+			return false;
+		}
+		//아이들 상태가 아니라면 히트 상태로 전환한다.
+		else 
+		{
+			Hp = FMath::Clamp ( Hp - attackInfo.DamageAmount , 0.0f , MaxHp );
 
-				// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
-				if ( niagaraComponent )
+			gameMode = Cast<AGameMode_MH> ( GetWorld ( )->GetAuthGameMode ( ) );
+			if ( gameMode )
+				gameMode->UpdatePlayerHP ( this , Hp );
+
+			if ( false == attackInfo.niagaraSystemArray.IsEmpty ( ) )
+			{
+				for ( auto* niagara : attackInfo.niagaraSystemArray )
 				{
-					niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
-					niagaraComponent->SetAutoDestroy ( true );
+					//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
+					// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
+					UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
+						this ,
+						niagara ,  // Niagara 시스템의 참조
+						attackInfo.skellEffectLocation,
+						FRotator::ZeroRotator ,
+							FVector ( 1.0f ) ,  // 기본 스케일
+							true ,  // AutoDestroy를 true로 설정
+							true ,  // AutoActivate를 true로 설정
+							ENCPoolMethod::None // 풀링 방식을 None으로 설정
+					);
+
+					// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
+					if ( niagaraComponent )
+					{
+						niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
+						niagaraComponent->SetAutoDestroy ( true );
+					}
 				}
 			}
-		}
-		if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )
-		{
-			for ( auto* particle : attackInfo.particleSystemArray )
+			if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )
 			{
-				UGameplayStatics::SpawnEmitterAtLocation ( GetWorld ( ) , particle , attackInfo.skellEffectLocation );
+				for ( auto* particle : attackInfo.particleSystemArray )
+				{
+					UGameplayStatics::SpawnEmitterAtLocation ( GetWorld ( ) , particle , attackInfo.skellEffectLocation );
+				}
 			}
-		}
-	
+			attackInfo.niagaraSystemArray.Empty ( );
 
-		//사운드
-		UGameplayStatics::PlaySound2D ( GetWorld ( ) , hitWeakSFV );
-		if ( currentState == stateKnockDown && stateKnockDown->isKnockDown )
-		{
-			//공격 받을 때 지연 프레임을 받아서 HitFalling 상태에 전달하고
-			//HitFalling 상태에서 이전 상태가 stateKnockDown 이면 누워서 맞는 애니메이션을 지연 프레임만큼 실행하고
-			//해당 애니메이션이 끝나면 stateKnockDown 에 지연이 끝났다는 것을 알리고 stateKnockDown 상태로 변경한다.
-			ExitCurrentState ( ECharacterStateInteraction::HitGround );
-			stateKnockDown->SetAttackInfo ( attackInfo );
-			stateHitFalling->SetAttackInfo ( attackInfo );
-			stateHitFalling->WasKnockDown = true;
-			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
-			eCharacterState = ECharacterStateInteraction::Sit;
-		}
-		else
-		{
-			if ( attackInfo.KnockBackDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+			//사운드
+			UGameplayStatics::PlaySound2D ( GetWorld ( ) , hitWeakSFV );
+			if ( currentState == stateKnockDown && stateKnockDown->isKnockDown )
 			{
+				//공격 받을 때 지연 프레임을 받아서 HitFalling 상태에 전달하고
+				//HitFalling 상태에서 이전 상태가 stateKnockDown 이면 누워서 맞는 애니메이션을 지연 프레임만큼 실행하고
+				//해당 애니메이션이 끝나면 stateKnockDown 에 지연이 끝났다는 것을 알리고 stateKnockDown 상태로 변경한다.
 				ExitCurrentState ( ECharacterStateInteraction::HitGround );
-				if ( preState == stateHitFalling )
-					stateHitFalling->WasHitFalling = true;
+				stateKnockDown->SetAttackInfo ( attackInfo );
 				stateHitFalling->SetAttackInfo ( attackInfo );
+				stateHitFalling->WasKnockDown = true;
 				blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
+				eCharacterState = ECharacterStateInteraction::Sit;
 			}
-		
-			/*else if ( )
-			{
-				stateBound->SetAttackInfo ( attackInfo );
-				blackboardComp->SetValueAsBool ( TEXT ( "IsBound" ) , true );
-			}*/
-		
 			else
 			{
-				ExitCurrentState ( ECharacterStateInteraction::HitGround );
-				stateHit->SetAttackInfo ( attackInfo );
-				blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , true );
+				if ( attackInfo.KnockBackDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+				{
+					if ( currentState != stateBound && currentState != stateHitFalling )
+						// 확대할 위치 , 줌 정도 0.5 기본 , 흔들림정도 , 흔들림 시간
+						aMainCamera->RequestZoomEffect ( GetActorLocation ( ) , 0.9f , 10.0f , 0.3f );
+					ExitCurrentState ( ECharacterStateInteraction::HitGround );
+					if ( preState == stateHitFalling )
+						stateHitFalling->WasHitFalling = true;
+					stateHitFalling->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
+				}
+		
+				/*else if ( )
+				{
+					stateBound->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsBound" ) , true );
+				}*/
+		
+				else
+				{
+					ExitCurrentState ( ECharacterStateInteraction::HitGround );
+					stateHit->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , true );
+				}
 			}
-		}
-		OnHit.Broadcast ( );
-		if ( Hp <= 0 )
-		{
-			bIsDead = true;
-			animInstance->bDie = true;
+			OnHit.Broadcast ( );
+			if ( Hp <= 0 )
+			{
+				bIsDead = true;
+				animInstance->bDie = true;
+			}
 		}
 	}
 

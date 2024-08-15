@@ -99,6 +99,10 @@ void UAICharacterAnimInstance::PlayMontageAtFrameRate ( UAnimMontage* montage , 
 
 UAICharacterAnimInstance::UAICharacterAnimInstance ( )
 {
+    static ConstructorHelpers::FObjectFinder <UAnimMontage> guardMontageFinder
+    ( TEXT ( "/Script/Engine.AnimMontage'/Game/LSJ/Animation/FinalAnimation/A_Block_Idle_Montage.A_Block_Idle_Montage'" ) );
+    if ( guardMontageFinder.Succeeded ( ) )
+        guardMontage = guardMontageFinder.Object;
     static ConstructorHelpers::FObjectFinder <UAnimMontage> hitFallingAirMontageFinder
     ( TEXT ( "/Script/Engine.AnimMontage'/Game/LSJ/Animation/FinalAnimation/FallingHit_Montage.FallingHit_Montage'" ) );
     if ( hitFallingAirMontageFinder.Succeeded ( ) )
