@@ -30,7 +30,7 @@ ACPP_CharacterPaul::ACPP_CharacterPaul ( )
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkeletalMesh ( TEXT ( "/Script/Engine.SkeletalMesh'/Game/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny'" ) );
 	if ( tempSkeletalMesh.Succeeded ( ) )
 		uCharacterMesh->SetSkeletalMeshAsset ( tempSkeletalMesh.Object );
-	uCharacterMesh->SetRelativeLocation ( FVector ( 0 , 0 , -90 ) );
+	uCharacterMesh->SetRelativeLocation ( FVector ( 0 , 0 , -80 ) );
 	uCharacterMesh->SetRelativeRotation ( FRotator ( 0 , 0 , -90 ) );
 	uCharacterMesh->SetWorldScale3D(FVector(0.1,0.1,0.1));
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -129,7 +129,7 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 					sNextCommand = mBaseCommandTree[0]->NextTrees[tempValue];
 				}
 			}
-		}
+ 		}
 	}
 	else if ( !CheckKeyArray ( ) && !sCurrCommand->loopCommand)
 	{
@@ -389,8 +389,8 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0 } , RK , 0 , 3 , &ACPP_CharacterPaul::CommandHighKick , false );
 	this->AddCommandBaseTree ( { 0, RK } , 0 , 0 , 3 , & ACPP_CharacterPaul::CommandEnd, false );
 
-	this->AddCommandBaseTree ( { 0, downkey, i3key } , forwardkey , 0 , 5 , & ACPP_CharacterPaul::CommandStar, false );
-	this->AddCommandBaseTree ( { 0, downkey, i3key, forwardkey } , forwardkey + RP , 0 , 7 , & ACPP_CharacterPaul::CommandBungGuan, false );
+	this->AddCommandBaseTree ( { 0, downkey, i3key } , forwardkey , 0 , 12 , & ACPP_CharacterPaul::CommandSlidingDash, false );
+	this->AddCommandBaseTree ( { 0, downkey, i3key, forwardkey } , forwardkey + RP , 0 , 14 , & ACPP_CharacterPaul::CommandBungGuan, false );
 
 // 	/**
 // 	 * combo Command
@@ -567,7 +567,7 @@ void ACPP_CharacterPaul::CommandJumpKneeKick ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 6 , 0 , 8 , 1 , 8 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , 5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -603,7 +603,7 @@ void ACPP_CharacterPaul::CommandJumpAxeKick ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 6 , 0 , 8 , 1 , 8 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -690,7 +690,20 @@ void ACPP_CharacterPaul::CommandDownForwardCrouch ( )
 	this->sFrameStatus.FrameUsing = 1;
 	this->iCurrFrame = 0;
 }
+void ACPP_CharacterPaul::CommandSlidingDash ( )
+{
+	if ( DebugMode )
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandDownForwardCrouch Pressed" ) );
 
+	this->eCharacterState = ECharacterStateInteraction::Move;
+	this->bCrouched = false;
+	this->SetToRelativeLocationFrame ( FVector ( 120 , 0 , 0 ) , 13);
+	this->sFrameStatus.FrameUsing = 1;
+	this->iCurrFrame = 0;
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgSlidingDash );
+}
 void ACPP_CharacterPaul::CommandDownBackCrouch ( )
 {
 	if ( DebugMode )
@@ -757,9 +770,9 @@ void ACPP_CharacterPaul::CommandLeadJab ( )
 
 	this->eCharacterState = ECharacterStateInteraction::AttackTop;
 
-	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 6 , 0 , 8 , 1 , 8 );
+	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 12 , 6 , 0 , 8 , 1 , 8 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 ) + this->GetActorLocation();
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -794,7 +807,7 @@ void ACPP_CharacterPaul::CommandCrossStaight ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 8 , 0 , 6 , 0 , 6 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 105 , -5 , 0 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 105 , -5 , 0 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -829,7 +842,7 @@ void ACPP_CharacterPaul::CommandJingun ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 14 , 15 , 10 , 0 , -1 , -12 , -1 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 100 , 5 , 60 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 100 , 5 , 60 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 80 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -862,7 +875,7 @@ void ACPP_CharacterPaul::CommandHighKick ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Top , 17 , 12 , 10 , 0 , 14 , 4 , 57 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 85 , -5 , 60 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 85 , -5 , 60 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 30 , -5 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 20 , 0 , 0 );
 
@@ -897,15 +910,15 @@ void ACPP_CharacterPaul::CommandBungGuan ( )
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 17 , 20, 20 , 0 ,0 , 0 ,0 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 120 , -5 , 60 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 60 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 500 , 0 , 20 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 40 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0;
-	sAttackInfo.cameraZoom = 0;
-	sAttackInfo.cameraDelay = 0;
+	sAttackInfo.cameraShake = 0.5;
+	sAttackInfo.cameraZoom = 0.2;
+	sAttackInfo.cameraDelay = 0.4;
 
 	this->SetToRelativeLocationFrame ( FVector ( 50 , 0 , 0 ) , 5 );
 
@@ -932,7 +945,7 @@ void ACPP_CharacterPaul::CommandJinJee ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 20 , 5 , 12 , 0 , 15 , -14 , 0 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 70 , -5 , 10 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 70 , -5 , 10 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 10 , 0 , 300 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 20 , 0 , 0 );
 
@@ -968,7 +981,7 @@ void ACPP_CharacterPaul::CommandSitJab( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 6 , 12 , 0 , 10 , -5 , 6 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 10 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 10 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 120 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
@@ -1003,7 +1016,7 @@ void ACPP_CharacterPaul::CommandSitSpineKick ( )
 	SetActtacInfoSkell ( EDamagePointInteraction::Lower , 15 , 12 , 8 , 0 , 10 , -5 , 6 );
 
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 120 , -5 , -50 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 120 , -5 , -50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 140 , -5 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
@@ -1038,7 +1051,7 @@ void ACPP_CharacterPaul::CommandBullA ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 13 , 12 , 15, -8 , 42 , -5 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 100 , 0 , 450 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
 
@@ -1073,7 +1086,7 @@ void ACPP_CharacterPaul::CommandLeftTiger ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 11 , 15 , 0, 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 110 , 0 , 300 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
@@ -1108,15 +1121,15 @@ void ACPP_CharacterPaul::CommandSangBong1 ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 12 , 18 , 6 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 10 ) + this->GetActorLocation ( );
-	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
-	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 10 ) ;
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 0 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0;
-	sAttackInfo.cameraZoom = 0;
-	sAttackInfo.cameraDelay = 0;
+	sAttackInfo.cameraShake = 0.5;
+	sAttackInfo.cameraZoom = 0.1;
+	sAttackInfo.cameraDelay = 0.3;
 
 	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 0 ) , 5 );
 
@@ -1144,9 +1157,9 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 9 , 27 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , -5 , 10 ) + this->GetActorLocation ( );
-	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
-	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , -5 , 10 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 0 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
@@ -1179,7 +1192,7 @@ void ACPP_CharacterPaul::CommandBackJilPung ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 ) + this->GetActorLocation ( );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
 
@@ -1644,7 +1657,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		this->bFalling = true;
 		this->GetVelocity ( ).Set ( 0 , 0 , 0 );
 	
-		this->GetCapsuleComponent()->AddForce(FVector(0,0,3000),FName("pelvis"), true);
+		this->GetCapsuleComponent()->AddForce(FVector(0,0,300),FName("pelvis"), true);
 		attackInfoHit.KnockBackDirection.X = 0;
 		attackInfoHit.KnockBackDirection.Y = 0;
 		attackInfoHit.KnockBackDirection.Z = 0;
@@ -1736,6 +1749,7 @@ void  ACPP_CharacterPaul::CommentHitFrameExecute ( )
 	TArray<AActor*> ignoreActors;
 	ignoreActors.Init ( this , 1 );
 	TArray<AActor*> outActors;
+	sAttackInfo.skellEffectLocation += this->GetActorLocation ( );
 	FVector sphereSpawnLocation = sAttackInfo.skellEffectLocation;
 	UClass* seekClass = ACPP_Tekken8CharacterParent::StaticClass ( );
 

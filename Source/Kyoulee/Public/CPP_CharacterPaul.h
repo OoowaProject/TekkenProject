@@ -142,6 +142,7 @@ public:
 	void CommandDownCrouch ( );
 	void CommandUpCrouch ( );
 	void CommandDownForwardCrouch ();
+	void CommandSlidingDash ( );
 	void CommandDownBackCrouch ();
 	void CommandMoveLateralDownDash ( );
 	void CommandMoveLateralDownLoop( );
@@ -158,7 +159,6 @@ public:
 	void CommandJinJee ( );
 	bool CommandAllStop ( );
 	void CommentHitFrameExecute( );
-
 	void CommandBullA ( );
 	void CommandLeftTiger ( );
 	void CommandBackJilPung ( );
@@ -242,6 +242,8 @@ public:
 	class UAnimMontage* uMtgSitJab;
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgSitSpineKick;
+	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
+	class UAnimMontage* uMtgSlidingDash;
 	// Jump
 	UPROPERTY (EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgJumpAxeKick;
