@@ -321,7 +321,9 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downLPkey , 0 , 2 , & ACPP_CharacterPaul::CommandSitJab , false );
 	this->AddCommandBaseTree ( { 0, downkey, i3key } , i3key + LP , 0 , 3 , & ACPP_CharacterPaul::CommandSitJab , false );
 
-	this->AddCommandBaseTree ( { 0, downkey, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA , false );
+	this->AddCommandBaseTree ( { 0, downkey, i3key } , i3key + RP , 0 , 20 , & ACPP_CharacterPaul::CommandBullA , false );
+
+	this->AddCommandBaseTree ( { 0, forwardkey } , forwardkey + RP , 0 , 20 , & ACPP_CharacterPaul::CommandBullA , false );
 
 
  	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downLPkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandUpCrouch , false);
@@ -419,9 +421,9 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 // 	/**
 // 	 * combo Command
 // 	 */
-
-	this->AddCommandBaseTree ( { 0, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
-	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
+// 
+// 	this->AddCommandBaseTree ( { 0, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
+// 	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
 
 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
@@ -1680,7 +1682,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 	iCurrFrame = 0;
 	// heart animation 추가하기
-	if ( this->Hp > 0 )
+	if ( this->Hp > 0 && !falling )
 	{
 		if ( attackInfoHit.hitMontage != nullptr ) //내가 준 몽타지 실행
 		{
