@@ -43,14 +43,14 @@ void UAIStateAttackLH::Execute ( const float& deltatime )
 	totalTime += deltatime;
 	if ( totalTime >= endFrame && !btest )
 	{
-		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "range : %f " ) , FVector::Dist ( owner->collisionLH->GetComponentLocation ( ) , startLocation ) ) );
+		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "range : %f " ) , FVector::Dist ( owner->collisionLH->GetComponentLocation ( ) , startLocation ) ) );
 		btest = true;
 	}
 	if ( walkTime <= endFrame )
 	{
 		float moveSpeed = FMath::Lerp ( walkSpeed , 0 , (walkTime += deltatime) / endFrame );
 		owner->GetCapsuleComponent ( )->AddRelativeLocation ( owner->GetActorForwardVector ( ) * moveSpeed * deltatime );
-		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "moveSpeed : %f " ) , moveSpeed ) );
+		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "moveSpeed : %f " ) , moveSpeed ) );
 	}
 
 }

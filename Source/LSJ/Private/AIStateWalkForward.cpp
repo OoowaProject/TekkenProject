@@ -24,10 +24,10 @@ void UAIStateWalkForward::Enter (UAICharacterAnimInstance* pAnimInstance )
 		return;
 
 	attackRange = owner->GetBlackboardComponent ( )->GetValueAsFloat ( TEXT ( "AttackRange" ) );
-	GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "start GetBTWDistance : %f " ) , owner->GetBTWDistance() ) );
-	GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "attackRange : %f end" ) , attackRange ) );
-	UE_LOG(LogTemp,Error, TEXT ( "start GetBTWDistance : %f " ) , owner->GetBTWDistance ( ));
-	UE_LOG ( LogTemp , Error , TEXT ( "attackRange : %f end" ) , attackRange  );
+	//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "start GetBTWDistance : %f " ) , owner->GetBTWDistance() ) );
+	//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "attackRange : %f end" ) , attackRange ) );
+	//UE_LOG(LogTemp,Error, TEXT ( "start GetBTWDistance : %f " ) , owner->GetBTWDistance ( ));
+	//UE_LOG ( LogTemp , Error , TEXT ( "attackRange : %f end" ) , attackRange  );
 
 	animInstace->PlayerWalkForwardMontage();
 	//animInstace->StateWalkForward(true);
