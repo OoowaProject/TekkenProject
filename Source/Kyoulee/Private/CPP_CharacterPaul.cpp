@@ -49,7 +49,6 @@ ACPP_CharacterPaul::ACPP_CharacterPaul ( )
 	collisionLower->SetUsingAbsoluteRotation ( true );
 	collisionLower->SetRelativeLocation ( FVector ( 0.092165 , 531.000000 , 117.000000 ) );
 
-
 	RootArrowComp = CreateDefaultSubobject<UArrowComponent> ( TEXT("RootArrowComp"));
 	RootArrowComp->SetupAttachment(this->GetCapsuleComponent());
 	RootArrowComp->SetRelativeLocation( FVector( 0, 0, -60 ));
@@ -177,7 +176,6 @@ bool ACPP_CharacterPaul::CheckKeyArray ( )
 		if ( sCurrCommand->NextTrees[nextKey]->timingEnd < iCurrFrame )
 			tempNextKeys.Remove ( nextKey );
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%d"), tempNextKeys.Num ( ) );
 	if (tempNextKeys.IsEmpty())
 		return false;
 	return true;
@@ -275,41 +273,66 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0, upkey, i7key } , i7key + LK , 0 , 20, &ACPP_CharacterPaul::CommandJumpKneeKick , false );
 	this->AddCommandBaseTree ( { 0, upkey, i7key, i7key + LK } , i7key + RK , 0 , 20 , &ACPP_CharacterPaul::CommandJumpAxeKick , false );
 	this->AddCommandBaseTree ( { 0, upkey, i7key, i7key + LK, i7key + RK } , 0 , 5 , 20 , &ACPP_CharacterPaul::CommandEnd , false );
-
-// 
-// 	/**
-// 	 * DownKey
-// 	 */
-// 	 // Move Lateral Minus
-// 	this->AddCommandBaseTree ( { 0 } , downkey , 0 , 3 , &ACPP_CharacterPaul::CommandStarWaitNext );
-// 	// 3frame wait
-// 	this->AddCommandBaseTree ( { 0 ,downkey } , 0 , 4 , 6 , &ACPP_CharacterPaul::CommandMoveLateralDownDash );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, 0 } , 0 , 5 , 10 , &ACPP_CharacterPaul::CommandStar );
+ 
+	/**
+	 * DownKey
+	 */
+	 // Move Lateral Minus
+	this->AddCommandBaseTree ( { 0 } , downkey , 0 , 3 , &ACPP_CharacterPaul::CommandStarWaitNext, false );
+ 	this->AddCommandBaseTree ( { 0 ,downkey } , 0 , 4 , 6 , &ACPP_CharacterPaul::CommandMoveLateralDownDash, false );
+ 	this->AddCommandBaseTree ( { 0 ,downkey, 0 } , 0 , 5 , 10 , &ACPP_CharacterPaul::CommandStar,  false);
 // 	// Move while Lateral
-// 	this->AddCommandBaseTree ( { 0 ,downkey, 0, 0 } , downkey , 0 , 0  , &ACPP_CharacterPaul::CommandMoveLateralDownLoop );
-// 	SetSelfReLinkTree ( { 0,downkey, 0, 0, downkey } );
-// 	this->AddCommandBaseTree ( { 0,downkey,0, 0, downkey } , 0 , 0 , 3 , &ACPP_CharacterPaul::CommandEnd );
-// 
+ 	this->AddCommandBaseTree ( { 0 ,downkey, 0, 0 } , downkey , 0 , 0  , &ACPP_CharacterPaul::CommandMoveLateralDownLoop , true);
+ 	this->AddCommandBaseTree ( { 0,downkey,0, 0, downkey } , 0 , 0 , 3 , &ACPP_CharacterPaul::CommandEnd, false );
+
 // 	// Crouch
-// 	this->AddCommandBaseTree ( { 0 } , downkey , 0 , 0 , &ACPP_CharacterPaul::CommandStar );
-// 	this->AddCommandBaseTree ( { 0 ,downkey } , downkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch );
-// 
-// 	// While Crouch
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downkey , 1 , 2 , &ACPP_CharacterPaul::CommandDownCrouch );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandEnd );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandEnd );
-// 	SetSelfReLinkTree ( { 0, downkey, downkey, downkey } );
-// 
+	this->AddCommandBaseTree ( { 0 ,downkey } , downkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey } , downLPkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey } , i3key, 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey } , i1key, 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey } , downLKkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
+
+
+
+	this->SetLinkTree ( { 0 , downkey, downLPkey } , { 0 ,downkey, downkey } );
+	this->SetLinkTree ( { 0 , downkey, downLKkey } , { 0 ,downkey, downkey} );
+
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downLPkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , i3key , 0 , 3 , &ACPP_CharacterPaul::CommandDownForwardCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey, i3key } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+
+
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downkey + backkey , 0 , 3 , & ACPP_CharacterPaul::CommandDownBackCrouch , true );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey + backkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
+
+	this->SetLinkTree ( { 0 , forwardkey } , { 0 ,downkey, downkey,  downkey + forwardkey } );
+	this->SetLinkTree ( { 0 , backkey } , { 0 ,downkey, downkey,  downkey + backkey } );
+
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + forwardkey } , { 0 ,downkey, downkey } );
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey } );
+
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + forwardkey } , { 0 ,forwardkey } );
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,backkey} );
+
 // 	// Skell Couch
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey } , downLPkey , 1 , 2 , &ACPP_CharacterPaul::CommandSitJab );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLPkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandUpCrouch );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLPkey } , downLPkey , 1 , 2 , &ACPP_CharacterPaul::CommandDownCrouch );
-// 	SetSelfReLinkTree ( { 0 ,downkey, downkey, downkey, downLPkey, downLPkey } );
-// 	this->SetLinkTree ( { 0, downkey, downkey, downkey, downLPkey, downLPkey } , { 0, downkey, downkey } );
-// 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLPkey, downLPkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandEnd );
-// 
-// 
-// 	//this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLPkey, downLKkey } , LP , 0 , 0 , 0 , &ACPP_CharacterPaul::CommandEnd );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downLPkey , 0 , 2 , & ACPP_CharacterPaul::CommandSitJab , false );
+	this->AddCommandBaseTree ( { 0, downkey, i3key } , i3key + LP , 0 , 3 , & ACPP_CharacterPaul::CommandSitJab , false );
+
+	this->AddCommandBaseTree ( { 0, downkey, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA , false );
+
+
+ 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downLPkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandUpCrouch , false);
+
+	this->SetLinkTree ( { 0 ,downkey, downkey, downLPkey } , { 0 ,downkey, downkey } );
+	this->SetLinkTree ( { 0 ,downkey, downkey, downLPkey } , { 0 ,downkey, downLPkey } );
+
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey, downLPkey } );
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + forwardkey } , { 0 ,downkey, downkey } );
+	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey } );
+
 // 
 //  	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey } , downLKkey , 1 , 2 , &ACPP_CharacterPaul::CommandSitSpineKick );
 // 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch );
@@ -396,12 +419,12 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 // 	/**
 // 	 * combo Command
 // 	 */
-// 
-// 	this->AddCommandBaseTree ( { 0 } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA );
-// 	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
-// 
-// 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger );
-// 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd );
+
+	this->AddCommandBaseTree ( { 0, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
+	this->AddCommandBaseTree ( { 0, i3key + RP} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
+
+	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
+	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
 // // 
 // // 
 // // 	this->AddCommandBaseTree ( { 0 } , backkey + LP , 0 , 3 , & ACPP_CharacterPaul::CommandSangBong1 );
@@ -684,6 +707,30 @@ void ACPP_CharacterPaul::CommandDownCrouch ( )
 	this->iCurrFrame = 0;
 }
 
+void ACPP_CharacterPaul::CommandDownForwardCrouch ( )
+{
+	if ( DebugMode )
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandDownForwardCrouch Pressed" ) );
+
+	this->eCharacterState = ECharacterStateInteraction::Sit;
+	this->bCrouched = true;
+	this->SetToRelativeLocationFrame ( FVector ( 3 , 0 , 0 ) , 3 );
+	this->sFrameStatus.FrameUsing = 1;
+	this->iCurrFrame = 0;
+}
+
+void ACPP_CharacterPaul::CommandDownBackCrouch ( )
+{
+	if ( DebugMode )
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandDownBackCrouch Pressed" ) );
+
+	this->eCharacterState = ECharacterStateInteraction::GuardSit;
+	this->bCrouched = true;
+	this->SetToRelativeLocationFrame ( FVector ( -3 , 0 , 0 ) , 3 );
+	this->sFrameStatus.FrameUsing = 1;
+	this->iCurrFrame = 0;
+}
+
 // 사용하지 않는다
 void ACPP_CharacterPaul::CommandUpCrouch ( )
 {
@@ -943,7 +990,7 @@ void ACPP_CharacterPaul::CommandSitJab( )
 	if ( DebugMode )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandSitJab Pressed" ) );
 
-	this->bCrouched = false;
+	this->bCrouched = true;
 
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 
