@@ -131,7 +131,7 @@ EBTNodeResult::Type UBTTaskNode_ChangeState::ExecuteTask ( UBehaviorTreeComponen
 				}
 				else if ( UAIStateGuard* stateGuard = Cast<UAIStateGuard> ( currentState ) )
 				{
-					stateGuard -> bSit = bSit;
+					//stateGuard -> bSit = bSit;
 					if ( !stateGuard->OnStateComplete.IsAlreadyBound ( this , &UBTTaskNode_ChangeState::OnStateCompleted ) )
 						stateGuard->OnStateComplete.AddDynamic ( this , &UBTTaskNode_ChangeState::OnStateCompleted );
 				}
