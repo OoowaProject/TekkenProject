@@ -133,11 +133,16 @@ public:
 	void CommandMoveBack ();
 	void CommandMoveBackDash();
 	void CommandJump ( );
-	void CommandJumpForward ();
+	void CommandJumpForward ( );
+	void CommandJumpBackward ( );
+	void CommandJumpKneeKick ( );
+	void CommandJumpAxeKick ( );
 	void CommandMoveLateralUpDash ( );
 	void CommandMoveLateralUpLoop ( );
 	void CommandDownCrouch ( );
 	void CommandUpCrouch ( );
+	void CommandDownForwardCrouch ();
+	void CommandDownBackCrouch ();
 	void CommandMoveLateralDownDash ( );
 	void CommandMoveLateralDownLoop( );
 	void CommandLeadJab ( );
@@ -192,10 +197,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect" )
 	UNiagaraSystem* uNS_DefenceEffect;
 
-
-
-
-	
 	/************************************************************************/
 	/*                    애니메이션을 위한  작업입니다                     */
 	/************************************************************************/
@@ -241,6 +242,12 @@ public:
 	class UAnimMontage* uMtgSitJab;
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgSitSpineKick;
+	// Jump
+	UPROPERTY (EditDefaultsOnly, Category="MontageList" )
+	class UAnimMontage* uMtgJumpAxeKick;
+	UPROPERTY (EditDefaultsOnly, Category="MontageList" )
+	class UAnimMontage* uMtgJumpKneeKick;
+	
 	// Defense
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgDefence;
@@ -283,16 +290,16 @@ public:
 
 	FCommandTreeNode* sCurrCommand;
 	FCommandTreeNode* sNextCommand;
-	FCommandTreeNode* sTempCommand;
+	FCommandTreeNode* sPrevCommand;
 	TArray<int32> sCurrCommandKeys;
 
 	int32 prevKeyValue = 0;
 	int32 currKeyValue = 0;
 	int32 nextKeyValue = 0;
 
-	FCommandTreeNode* CreateCommandTree ( int32 keyValue , int32 timingStart , int32 timingEnd , void (ACPP_CharacterPaul::* fptr)() );
-	FCommandTreeNode* AddCommandTree ( TMap<int32 , FCommandTreeNode*>& CurrCommandTree , int32 keyValue , int32 timingEnd , int32 timingAction , void(ACPP_CharacterPaul::* fptr)() );
-	FCommandTreeNode* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)() );//, bool loopCommand );
+	FCommandTreeNode* CreateCommandTree ( int32 keyValue , int32 timingStart , int32 timingEnd , void (ACPP_CharacterPaul::* fptr)(), bool loopCommand );
+	FCommandTreeNode* AddCommandTree ( TMap<int32 , FCommandTreeNode*>& CurrCommandTree , int32 keyValue , int32 timingEnd , int32 timingAction , void(ACPP_CharacterPaul::* fptr)(), bool loopCommand );
+	FCommandTreeNode* AddCommandBaseTree ( TArray<int> arrayTreeCommand , int32 keyValue , int32 timingStart , int32 timingEnd , void(ACPP_CharacterPaul::* fptr)(), bool loopCommand );
 
 	bool CheckKeyArray ( );
 
@@ -300,10 +307,7 @@ public:
 	bool SetSelfReLinkTree ( TArray<int32> arrayTreeCommand );
 	bool SetLinkTree ( TArray<int32> TargetTree , TArray<int32> ConnectTree );
 
-
 	// 커맨드 트리 나누기 필요
-
-
 
 	/**
 	 * @title Owner State
@@ -384,6 +388,9 @@ public:
 	class USoundBase* uSoundHitLefthand;
 	UPROPERTY(EditDefaultsOnly, Category="Sound" )
 	class USoundBase* uSoundHitRightHand;
-	
 		
-};	            
+	float fHeightValue = 30;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category="ArrowsComp")
+	class UArrowComponent* RootArrowComp;
+};
