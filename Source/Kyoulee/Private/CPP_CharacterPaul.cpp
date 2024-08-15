@@ -93,12 +93,14 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 {
 	Super::Tick ( DeltaTime );
 	player1 = 0;
-
-	if ( this->GameModeMH->Player1 == this )
-	{
-		this->player1 = 1;
-		this->DebugMode = true;
-	}
+	
+	if (this->bIsDead)
+		return;
+// 	if ( this->GameModeMH->Player1 == this )
+// 	{
+// 		this->player1 = 1;
+// 		this->DebugMode = true;
+// 	}
 	this->currKeyValue = this->GetCurrInputKeyValue ( );
 	if (currKeyValue != prevKeyValue || sCurrCommand->NextTrees.Find ( prevKeyValue ) )
 	{
@@ -148,21 +150,9 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	sAttackInfo.ActionFrame--;
 	iCurrFrame++;
 	//UE_LOG ( LogTemp , Warning , TEXT ( "%d" ) , sFrameStatus.FrameUsing );
+// 
+// 	// 다음 행동 정의
 
-	if ( this == this->GameModeMH->Player1)
-		DebugMode = 1;
-
-	if ( this->Hp <= 0 )
-		this->bIsDead = true;
-	else
-		this->bIsDead = false;
-	if ( this->bIsDead )
-		return;
-	// 다음 행동 정의
-	if (this->GetZValue() < this->fHeightValue )
-		this->bFalling = false;
-	else
-		return;
 	this->FrameSystem ( );
 	this->prevKeyValue = currKeyValue;
 }
@@ -214,6 +204,7 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	/************************************************************************/
 	/*                          Command Tree Create                         */
 	/************************************************************************/
+
 	/**
 	 *  ForwardKey
 	 */
@@ -259,8 +250,6 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0, upkey, upkey, upkey + LK } , upkey + RK , 5 , 20 , &ACPP_CharacterPaul::CommandJumpAxeKick , false );
 	this->AddCommandBaseTree ( { 0, upkey, upkey, upkey + LK , upkey + RK } , 0 , 5 , 20 , &ACPP_CharacterPaul::CommandEnd , false );
 
-
-
 	this->AddCommandBaseTree ( { 0, upkey } , i9key , 3 , 6 , &ACPP_CharacterPaul::CommandJumpForward , false );
 	this->AddCommandBaseTree ( { 0, forwardkey } , i9key , 0 , 3 , &ACPP_CharacterPaul::CommandJumpForward , false );
 	this->AddCommandBaseTree ( { 0, upkey, i9key } , i9key + LK , 0 , 20, &ACPP_CharacterPaul::CommandJumpKneeKick , false );
@@ -282,8 +271,8 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
  	this->AddCommandBaseTree ( { 0 ,downkey } , 0 , 4 , 6 , &ACPP_CharacterPaul::CommandMoveLateralDownDash, false );
  	this->AddCommandBaseTree ( { 0 ,downkey, 0 } , 0 , 5 , 10 , &ACPP_CharacterPaul::CommandStar,  false);
 // 	// Move while Lateral
- 	this->AddCommandBaseTree ( { 0 ,downkey, 0, 0 } , downkey , 0 , 0  , &ACPP_CharacterPaul::CommandMoveLateralDownLoop , true);
- 	this->AddCommandBaseTree ( { 0,downkey,0, 0, downkey } , 0 , 0 , 3 , &ACPP_CharacterPaul::CommandEnd, false );
+ 	this->AddCommandBaseTree ( { 0 ,downkey, 0 } , downkey , 1 , 5  , &ACPP_CharacterPaul::CommandMoveLateralDownLoop , true);
+ 	this->AddCommandBaseTree ( { 0,downkey,0, downkey } , 0 , 0 , 3 , &ACPP_CharacterPaul::CommandEnd, false );
 
 // 	// Crouch
 	this->AddCommandBaseTree ( { 0 ,downkey } , downkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
@@ -291,8 +280,6 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->AddCommandBaseTree ( { 0 ,downkey } , i3key, 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
 	this->AddCommandBaseTree ( { 0 ,downkey } , i1key, 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
 	this->AddCommandBaseTree ( { 0 ,downkey } , downLKkey , 4 , 6 , &ACPP_CharacterPaul::CommandDownCrouch , true );
-
-
 
 	this->SetLinkTree ( { 0 , downkey, downLPkey } , { 0 ,downkey, downkey } );
 	this->SetLinkTree ( { 0 , downkey, downLKkey } , { 0 ,downkey, downkey} );
@@ -303,7 +290,6 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , i3key , 0 , 3 , &ACPP_CharacterPaul::CommandDownForwardCrouch , true );
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, i3key } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
-
 
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downkey + backkey , 0 , 3 , & ACPP_CharacterPaul::CommandDownBackCrouch , true );
 	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downkey + backkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch , false );
@@ -325,7 +311,6 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 
 	this->AddCommandBaseTree ( { 0, forwardkey } , forwardkey + RP , 0 , 20 , & ACPP_CharacterPaul::CommandBullA , false );
 
-
  	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downLPkey } , 0 , 1 , 2 , &ACPP_CharacterPaul::CommandUpCrouch , false);
 
 	this->SetLinkTree ( { 0 ,downkey, downkey, downLPkey } , { 0 ,downkey, downkey } );
@@ -334,9 +319,7 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey, downLPkey } );
 	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + forwardkey } , { 0 ,downkey, downkey } );
 	this->SetLinkTree ( { 0 ,downkey, downkey, downkey + backkey } , { 0 ,downkey, downkey } );
-
-// 
-// //  
+	
   	this->AddCommandBaseTree ( { 0 ,downkey, downkey } , downLKkey , 1 , 2 , &ACPP_CharacterPaul::CommandSitSpineKick, false );
  	this->AddCommandBaseTree ( { 0 ,downkey, downkey, downLKkey } , 0 , 1 , 2 , & ACPP_CharacterPaul::CommandUpCrouch, false );
 
@@ -400,6 +383,12 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 
 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
 	this->AddCommandBaseTree ( { 0, i3key + LK} , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
+
+	this->AddCommandBaseTree ( { 0 ,downkey } , downkey + RK , 4 , 6 , & ACPP_CharacterPaul::CommandMtgLuOu1 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK } , downkey + RP , 0 , 16 , & ACPP_CharacterPaul::CommandMtgLuOu2 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK ,  downkey + RP } , RP + LP , 0 , 16 , & ACPP_CharacterPaul::CommandMtgLuOu3 , false );
+	this->AddCommandBaseTree ( { 0 ,downkey, downkey + RK ,  downkey + RP, RP + LP } , 0 , 0 , 6 , & ACPP_CharacterPaul::CommandEnd , false );
+
 // // 
 // // 
 
@@ -445,7 +434,6 @@ void ACPP_CharacterPaul::CommandIdle ( )
 		return;
 	this->bCrouched =false;
 	this->bJumpping = false;
-	this->bFalling = false;
 	this->eCharacterState = ECharacterStateInteraction::GuardStand;
 }
 
@@ -461,6 +449,7 @@ void ACPP_CharacterPaul::CommandEnd ( )
 	if ( DebugMode )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandEnd Pressed" ) );
 	this->bCrouched = false;
+	this->bJumpping =false;
 }
 
 
@@ -472,22 +461,9 @@ void ACPP_CharacterPaul::CommandMoveForward ( )
 	eCharacterState = ECharacterStateInteraction::WalkForward;
 
 	// 애니메이션으로 바꾼다면?
-	this->SetToRelativeLocationFrame ( FVector ( 10 , 0 , 0 ) , 5);
+	this->SetToRelativeLocationFrame ( FVector ( 15 , 0 , 0 ) , 5);
 
 	sFrameStatus.FrameUsing = 2;
-}
-
-
-void ACPP_CharacterPaul::CommandMoveForwardLoop ( )
-{
-	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMoveForwardLoop Pressed" ) );
-
-	eCharacterState = ECharacterStateInteraction::WalkForward;
-
-	// 애니메이션으로 바꾼다면?
-	this->SetToRelativeLocationFrame ( FVector ( 10 , 0 , 0 ) , 5 );
-
 }
 
 void ACPP_CharacterPaul::CommandMoveForwarDash ( )
@@ -509,7 +485,7 @@ void ACPP_CharacterPaul::CommandMoveBack ( )
 
 	eCharacterState = ECharacterStateInteraction::GuardStand;
 
-	this->SetToRelativeLocationFrame ( FVector ( -10 , 0 , 0 ) , 5 );
+	this->SetToRelativeLocationFrame ( FVector ( -15 , 0 , 0 ) , 5 );
 	this->sFrameStatus.FrameUsing = 2;
 }
 
@@ -520,7 +496,10 @@ void ACPP_CharacterPaul::CommandMoveBackDash ( )
 
 	eCharacterState = ECharacterStateInteraction::Move;
 
-	this->SetToRelativeLocationFrame ( FVector ( -200 , 0 , 0 ) , 15 );
+	this->SetToRelativeLocationFrame ( FVector ( -120 , 0 , 0 ) , 15 );
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgBackDash );
+
 	this->sFrameStatus.FrameUsing = 20;
 	this->iCurrFrame = 0;
 }
@@ -532,9 +511,9 @@ void ACPP_CharacterPaul::CommandJump ( )
 	
 	eCharacterState = ECharacterStateInteraction::Air;
 
-	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 400 ) , 50 );
+	this->SetToRelativeLocationFrame ( FVector (0 , 0 , 450 ) , 60 );
 	this->bJumpping = true;
-	this->sFrameStatus.FrameUsing = 15;
+	this->sFrameStatus.FrameUsing = 54;
 }
 
 void ACPP_CharacterPaul::CommandJumpForward ( )
@@ -542,9 +521,9 @@ void ACPP_CharacterPaul::CommandJumpForward ( )
 	if ( DebugMode )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandJumpForward Pressed" ) );
 
-	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 400 ) , 50 );
+	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 450 ) , 60 );
 	this->bJumpping = true;
-	this->sFrameStatus.FrameUsing = 15;
+	this->sFrameStatus.FrameUsing = 54;
 }
 
 void ACPP_CharacterPaul::CommandJumpBackward ( )
@@ -552,9 +531,9 @@ void ACPP_CharacterPaul::CommandJumpBackward ( )
 	if ( DebugMode )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandJumpBackward Pressed" ) );
 
-	this->SetToRelativeLocationFrame ( FVector ( -40 , 0 , 400 ) , 50 );
+	this->SetToRelativeLocationFrame ( FVector ( -40 , 0 , 450 ) , 60 );
 	this->bJumpping = true;
-	this->sFrameStatus.FrameUsing = 15;
+	this->sFrameStatus.FrameUsing = 54;
 }
 
 void ACPP_CharacterPaul::CommandJumpKneeKick ( )
@@ -641,7 +620,7 @@ void ACPP_CharacterPaul::CommandMoveLateralUpDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame (FVector( 80 , -50 , 0 ), 10);
+	this->SetToRelativeLocationFrame (FVector( 50 , -80 , 0 ), 10);
 
 	// 애니매이션 실행 부분 있으면 만들기
 	//PlayMontageFrameSystem ( uMtgMoveLateral );
@@ -659,11 +638,11 @@ void ACPP_CharacterPaul::CommandMoveLateralUpLoop( )
 	sAttackInfo.DamagePoint = EDamagePointInteraction::Special;
 	sAttackInfo.DamageAmount = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 16, -16 , 0 ) ,5 );
+	this->SetToRelativeLocationFrame ( FVector ( 10, -16 , 0 ) ,5 );
 
 	// 애니매이션 실행 부분 없음
 
-	this->sFrameStatus.FrameUsing = 5;
+	this->sFrameStatus.FrameUsing = 2;
 }
 
 void ACPP_CharacterPaul::CommandDownCrouch ( )
@@ -739,7 +718,7 @@ void ACPP_CharacterPaul::CommandMoveLateralDownDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame ( FVector ( 80 , 50 , 0 ) , 10 );
+	this->SetToRelativeLocationFrame ( FVector ( 50 , 80 , 0 ) , 10 );
 
 	// 애니매이션 실행 부분 있으면 만들기
 	PlayMontageFrameSystem ( uMtgMoveLateral );
@@ -756,11 +735,11 @@ void ACPP_CharacterPaul::CommandMoveLateralDownLoop ( )
 	sAttackInfo.DamagePoint = EDamagePointInteraction::Special;
 	sAttackInfo.DamageAmount = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 16 , 10 , 0 ) , 5 );
+	this->SetToRelativeLocationFrame ( FVector ( 10 , 16 , 0 ) , 5 );
 
 	// 애니매이션 실행 부분 없음
 
-	this->sFrameStatus.FrameUsing = 5;
+	this->sFrameStatus.FrameUsing = 2;
 }
 
 void ACPP_CharacterPaul::CommandLeadJab ( )
@@ -770,9 +749,9 @@ void ACPP_CharacterPaul::CommandLeadJab ( )
 
 	this->eCharacterState = ECharacterStateInteraction::AttackTop;
 
-	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 12 , 6 , 0 , 8 , 1 , 8 );
+	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 12 , 10 , 0 , 8 , 1 , 8 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , 5 , 50 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , 5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -805,9 +784,9 @@ void ACPP_CharacterPaul::CommandCrossStaight ( )
 
 	this->eCharacterState = ECharacterStateInteraction::AttackTop;
 
-	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 8 , 0 , 6 , 0 , 6 );
+	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 10 , 12 , 0 , 6 , 0 , 6 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 105 , -5 , 0 ) ;
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 105 , -5 , 30 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -840,7 +819,7 @@ void ACPP_CharacterPaul::CommandJingun ( )
 
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 
-	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 14 , 15 , 10 , 0 , -1 , -12 , -1 );
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 14 , 15 , 13 , 0 , -1 , -12 , -1 );
 
 	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 100 , 5 , 60 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 80 , 0 , 0 );
@@ -905,7 +884,6 @@ void ACPP_CharacterPaul::CommandBungGuan ( )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandBungGuan Pressed" ) );
 
 	this->bCrouched = false;
-	SetActtacInfoSkell ( EDamagePointInteraction::Top , 17 , 12 , 20 , 0 , 14 , 4 , 57 );
 
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 17 , 20, 20 , 0 ,0 , 0 ,0 );
@@ -921,7 +899,7 @@ void ACPP_CharacterPaul::CommandBungGuan ( )
 	sAttackInfo.cameraDelay = 0.4;
 
 	this->SetToRelativeLocationFrame ( FVector ( 50 , 0 , 0 ) , 5 );
-
+	sAttackInfo.hitMontage = uMtgFallBackHitForBungGuan;
 	// 애니매이션 실행 부분
 	PlayMontageFrameSystem ( uMtgBungGuan );
 
@@ -943,7 +921,7 @@ void ACPP_CharacterPaul::CommandJinJee ( )
 
 	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
 
-	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 20 , 5 , 12 , 0 , 15 , -14 , 0 );
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 20 , 5 , 18 , 0 , 15 , -14 , 0 );
 
 	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 70 , -5 , 10 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 10 , 0 , 300 );
@@ -1121,15 +1099,15 @@ void ACPP_CharacterPaul::CommandSangBong1 ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 12 , 18 , 6 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 10 ) ;
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , -5 , 40 ) ;
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 0 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0.5;
-	sAttackInfo.cameraZoom = 0.1;
-	sAttackInfo.cameraDelay = 0.3;
+	sAttackInfo.cameraShake = 0.0;
+	sAttackInfo.cameraZoom = 0.0;
+	sAttackInfo.cameraDelay = 0.0;
 
 	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 0 ) , 5 );
 
@@ -1157,15 +1135,15 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 9 , 27 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , -5 , 10 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , -5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 0 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 0 );
 
 	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
 
-	sAttackInfo.cameraShake = 0;
-	sAttackInfo.cameraZoom = 0;
-	sAttackInfo.cameraDelay = 0;
+	sAttackInfo.cameraShake = 3.1;
+	sAttackInfo.cameraZoom = 0.9;
+	sAttackInfo.cameraDelay = 0.3;
 
 	this->SetToRelativeLocationFrame ( FVector ( 100 , 0 , 0 ) , 10 );
 
@@ -1219,20 +1197,106 @@ void ACPP_CharacterPaul::CommandBackJilPung ( )
 void ACPP_CharacterPaul::CommandMtgLuOu1 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu1 Pressed" ) );
-	
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo1 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackLower;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Lower , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , -40 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 30 , 0 , 0 ) , 3 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu1 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitLeftFoot;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 void ACPP_CharacterPaul::CommandMtgLuOu2 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu2 Pressed" ) );
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo2 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 100 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 50 , 0 , 0 ) , 3 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu2 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitRightHand;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 void ACPP_CharacterPaul::CommandMtgLuOu3 ( )
 {
 	if ( DebugMode )
-		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu2 Pressed" ) );
+		UE_LOG ( LogTemp , Warning , TEXT ( "CommandCombo3 Pressed" ) );
+
+	this->bCrouched = false;
+
+	this->eCharacterState = ECharacterStateInteraction::AttackMiddle;
+
+	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 18 , 20 , 0 , 8 , 8 , 42 );
+
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 10 );
+	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 300 );
+	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 300 );
+
+	this->SetAttackInfoOwnerOpposite ( ); // 내부 owner frame opposite frame 자동 세팅용 함수
+
+	sAttackInfo.cameraShake = 0;
+	sAttackInfo.cameraZoom = 0;
+	sAttackInfo.cameraDelay = 0;
+
+	this->SetToRelativeLocationFrame ( FVector ( 70 , 0 , 0 ) , 4 );
+
+	// 애니매이션 실행 부분
+	PlayMontageFrameSystem ( uMtgLuOu3 );
+	sAttackInfo.niagaraSystemArray.Add ( this->uNS_HitEffect );
+
+	// 사운드 추가
+	sAttackInfo.uMovementSound = this->uSoundHitRightFoot;
+	sAttackInfo.uHitSound = this->uSoundPaulStrongHit;
+	sAttackInfo.uDefenceSound = this->uSoundGuard;
+
+	this->sFrameStatus.FrameUsing = sAttackInfo.ActionFrame + sAttackInfo.RetrieveFrame;
 }
 
 float ACPP_CharacterPaul::GetZValue ( )
@@ -1270,44 +1334,26 @@ bool ACPP_CharacterPaul::CommandAllStop ( )
 
 void ACPP_CharacterPaul::AnimationFrame ( )
 {
-	if ( this->bFalling && this->fFallingValue <= 1.0f )
-		this->fFallingValue += 0.08f;
-	else if ( !this->bFalling && this->fFallingValue > 0.0f )
-		this->fFallingValue -= 0.08f;
-	
+	if (bFalling){
+		this->StopAnimMontage();
+		this->eCharacterState = ECharacterStateInteraction::Down;
+	}
+	if (bFalling && this->fFallingValue <= 1.0f )
+	{
+		this->fFallingValue += 0.04f;
+	}else if (! bFalling && this->fFallingValue > 0.0f ){
+		this->fFallingValue -= 0.04f;
+	}
 	//UE_LOG(LogTemp, Warning, TEXT("Falling value %f : is true? %d"), fFallingValue, bFalling);
 	if ( !this->ToLocationFrame.IsEmpty ( ) )
 	{
 		FVector dir = this->ToLocationFrame.Pop ( );
 		locationlenght = dir;
-		//this->GetCapsuleComponent()->AddWorldTransform(FTransform(this->GetActorRotation(),locationlenght, this->GetActorScale3D()));// AddRelativeLocation( locationlenght );
-		// this->GetCapsuleComponent()->AddWorldTransform(FTransform(FRotator::ZeroRotator,locationlenght, FVector::ZeroVector));
 		this->GetCapsuleComponent( )->AddRelativeLocation( locationlenght );
-		//SetActorLocation ( this->GetActorLocation ( ) + locationlenght );
 	}
 	else
 	{
 		locationlenght *= 0;
-	}
-	// 인풋이 있을 경우 상대를 바라본다 
-	if ( currKeyValue )
-	{
-// 		FVector opponentPlayerRotator = aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) );
-// 		opponentPlayerRotator.Z = GetActorLocation ( ).Z;
-// 		FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-// 		GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
-// 		lookRotator.Yaw += -180 * player1;
-// 		GetMesh ( )->SetRelativeRotation ( lookRotator );
-
-		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
-		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
-
-		this->SetActorRotation ( Lookrotation );
-
-		this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
-		Lookrotation.Yaw += -180 * player1;
-		Lookrotation.Pitch = 0;
-//		this->GetMesh ( )->SetRelativeRotation ( Lookrotation );
 	}
 }
 
@@ -1512,6 +1558,18 @@ void ACPP_CharacterPaul::FrameSystem ( )
 		sAttackInfo.ActionFrame = -1;
 		return;
 	}
+	// 인풋이 있을 경우 상대를 바라본다 
+	if ( currKeyValue )
+	{
+		if ( this->GetZValue ( ) < this->fHeightValue )
+			this->bFalling = false;
+		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+		this->SetActorRotation ( Lookrotation );
+	}
+	if ( this->fFallingValue > 0.1f )
+		return;
+
 	// 액션 프레임 발동
 	if ( sAttackInfo.ActionFrame == 0 )
 		this->CommentHitFrameExecute ( );
@@ -1593,13 +1651,13 @@ void ACPP_CharacterPaul::SetAttackInfoOwnerOpposite ( )
 /************************************************************************/
 bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , ACPP_Tekken8CharacterParent* ownerHitPlayer )
 {
-	float falling = this->GetZValue ( );
+	float fallingHeight = this->GetZValue ( );
 
 	if ( aMainCamera )
 		aMainCamera->RequestZoomEffect ( attackInfoHit.skellEffectLocation , attackInfoHit.cameraZoom , attackInfoHit.cameraShake , attackInfoHit.cameraDelay );
 	else
 		UE_LOG ( LogTemp , Warning , TEXT ( "is Emtpy " ) );
-	if ( falling < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Top && this->eCharacterState == ECharacterStateInteraction::GuardStand )
+	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Top && this->eCharacterState == ECharacterStateInteraction::GuardStand )
 	{
 
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
@@ -1614,7 +1672,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , uNS_DefenceEffect , attackInfoHit.skellEffectLocation );
 		return false;
 	}
-	if ( falling < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && this->eCharacterState == ECharacterStateInteraction::GuardStand )
+	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && this->eCharacterState == ECharacterStateInteraction::GuardStand )
 	{
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
@@ -1634,7 +1692,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 		return false;
 	}
-	if ( falling < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Lower && this->eCharacterState == ECharacterStateInteraction::GuardSit )
+	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Lower && this->eCharacterState == ECharacterStateInteraction::GuardSit )
 	{
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
@@ -1652,12 +1710,14 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 		return false;
 	}
-	if ( falling > fHeightValue )
+	if (attackInfoHit.KnockBackDirection.Z)
+		this->bFalling = true;
+	if ( fallingHeight > fHeightValue )
 	{
 		this->bFalling = true;
-		this->GetVelocity ( ).Set ( 0 , 0 , 0 );
-	
-		this->GetCapsuleComponent()->AddForce(FVector(0,0,300),FName("pelvis"), true);
+		this->GetMovementComponent()->Velocity = FVector(0,0,0);
+
+		this->GetCapsuleComponent()->AddForce(FVector(0,0,400),FName("pelvis"), true);
 		attackInfoHit.KnockBackDirection.X = 0;
 		attackInfoHit.KnockBackDirection.Y = 0;
 		attackInfoHit.KnockBackDirection.Z = 0;
@@ -1665,7 +1725,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		this->uAnim->StopAllMontages ( 0.01f );
 		this->ToLocationFrame.Empty();
 	}
-	//this->SetActorRotation ( UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) ) );
+	
 	this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeHitFrame;
 	this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , attackInfoHit.OppositeHitFrame );
 
