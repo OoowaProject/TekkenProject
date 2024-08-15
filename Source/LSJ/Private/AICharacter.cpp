@@ -31,6 +31,7 @@
 #include "BrainComponent.h"
 #include "GameMode_MH.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AAICharacter::AAICharacter()
@@ -510,23 +511,23 @@ void AAICharacter::Tick(float DeltaTime)
 		GetCapsuleComponent ( )->AddRelativeLocation ( Gravity * DeltaTime , true);
 	}
 	//앞에 적이 있는지 감지하는 line trace
-	if ( currentState == stateRun || currentState == stateWalkForward )
-	{
-		FHitResult hitForwardWalk;
-		FVector traceStartForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) );//TEXT ( "spine_01" ) );
-		FVector traceEndForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetForwardVector ( ) * 60.0f;
-		FCollisionQueryParams queryParams;
-		queryParams.AddIgnoredActor ( this );
-		GetWorld ( )->LineTraceSingleByChannel ( hitForwardWalk , traceStartForwardWalk , traceEndForwardWalk , ECollisionChannel::ECC_Camera , queryParams );
-		//DrawDebugLine ( GetWorld ( ) , traceStartForwardWalk , traceEndForwardWalk , hitForwardWalk.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 80.0f );
-		if ( hitForwardWalk.GetActor ( )==aOpponentPlayer )// && false ==IsValid ( hit.GetActor()) )
-		{
-			//상대를 나의 이동 변화 만큼 민다
-			FVector directionPush = GetActorLocation ( ) - previousLocation;
-			directionPush.Z = 0;
-			aOpponentPlayer->GetCapsuleComponent ( )->AddRelativeLocation ( directionPush );
-		}
-	}
+	//if ( currentState != stateHit && currentState != stateHitFalling && currentState != stateKnockDown && currentState != stateBound )
+	//{
+	//	FHitResult hitForwardWalk;
+	//	FVector traceStartForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) );//TEXT ( "spine_01" ) );
+	//	FVector traceEndForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetForwardVector ( ) * 60.0f;
+	//	FCollisionQueryParams queryParams;
+	//	queryParams.AddIgnoredActor ( this );
+	//	GetWorld ( )->LineTraceSingleByChannel ( hitForwardWalk , traceStartForwardWalk , traceEndForwardWalk , ECollisionChannel::ECC_Camera , queryParams );
+	//	//DrawDebugLine ( GetWorld ( ) , traceStartForwardWalk , traceEndForwardWalk , hitForwardWalk.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 80.0f );
+	//	if ( hitForwardWalk.GetActor ( )==aOpponentPlayer )// && false ==IsValid ( hit.GetActor()) )
+	//	{
+	//		//상대를 나의 이동 변화 만큼 민다
+	//		FVector directionPush = GetActorLocation ( ) - previousLocation;
+	//		directionPush.Z = 0;
+	//		aOpponentPlayer->GetCapsuleComponent ( )->AddRelativeLocation ( directionPush );
+	//	}
+	//}
 	
 	//누워있을때 바닥인지 감지하는 line trace
 	FHitResult hit;
@@ -1166,6 +1167,7 @@ void AAICharacter::LookTarget (const float& deltaTime)
 {
 	if(nullptr==aOpponentPlayer)
 		return;
+	/*
 	FVector opponentPlayerRotator = aOpponentPlayer->GetMesh()->GetBoneLocation((TEXT("head")));
 	opponentPlayerRotator.Z = GetActorLocation ( ).Z;
 	FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
@@ -1173,14 +1175,34 @@ void AAICharacter::LookTarget (const float& deltaTime)
 	GetCapsuleComponent ( )->SetRelativeRotation (  lookRotator );
 	lookRotator.Yaw += 180 * startDirection;
 	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	*/
+	
+	FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+	Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+
+	this->SetActorRotation ( Lookrotation );
+
+	this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+	Lookrotation.Yaw += -180 * startDirection;
+	Lookrotation.Pitch = 0;
 	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
 void AAICharacter::LookTarget ( const float& deltaTime , FRotator lookRotator)
 {
-	GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
-	lookRotator.Yaw += 180 * startDirection;
-	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	//GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+	//lookRotator.Yaw += 180 * startDirection;
+	//GetMesh ( )->SetRelativeRotation ( lookRotator );
 	
+
+	FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+	Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+
+	this->SetActorRotation ( Lookrotation );
+
+	this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+	Lookrotation.Yaw += -180 * startDirection;
+	Lookrotation.Pitch = 0;
+
 	/*GetCapsuleComponent ( )->SetWorldRotation ( FMath::RInterpTo ( GetCapsuleComponent ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
 	lookRotator.Yaw += 180 * startDirection;
 	GetMesh ( )->SetWorldRotation ( FMath::RInterpTo ( GetMesh ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
