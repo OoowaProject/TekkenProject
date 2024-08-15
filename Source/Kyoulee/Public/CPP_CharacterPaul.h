@@ -141,6 +141,8 @@ public:
 	void CommandMoveLateralUpLoop ( );
 	void CommandDownCrouch ( );
 	void CommandUpCrouch ( );
+	void CommandDownForwardCrouch ();
+	void CommandDownBackCrouch ();
 	void CommandMoveLateralDownDash ( );
 	void CommandMoveLateralDownLoop( );
 	void CommandLeadJab ( );
