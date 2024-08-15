@@ -395,7 +395,7 @@ void ACPP_CharacterPaul::SettingCommandTree ( )
 // 	/**
 // 	 * combo Command
 // 	 */
- 	this->AddCommandBaseTree ( { 0, i3key } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
+ 	this->AddCommandBaseTree ( { 0 } , i3key + RP , 0 , 3 , & ACPP_CharacterPaul::CommandBullA, false );
  	this->AddCommandBaseTree ( { 0, i3key + RP } , 0 , 0 , 10 , & ACPP_CharacterPaul::CommandEnd, false );
 
 	this->AddCommandBaseTree ( { 0 } , i3key + LK , 0 , 20 , & ACPP_CharacterPaul::CommandLeftTiger, false );
@@ -1643,7 +1643,10 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		this->bFalling = true;
 		this->GetVelocity ( ).Set ( 0 , 0 , 0 );
 	
-		attackInfoHit.KnockBackDirection.Z = 1000;
+		this->GetCapsuleComponent()->AddForce(FVector(0,0,3000),FName("pelvis"), true);
+		attackInfoHit.KnockBackDirection.X = 0;
+		attackInfoHit.KnockBackDirection.Y = 0;
+		attackInfoHit.KnockBackDirection.Z = 0;
 		attackInfoHit.OppositeHitFrame += 10;
 		this->uAnim->StopAllMontages ( 0.01f );
 		this->ToLocationFrame.Empty();
@@ -1701,6 +1704,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 				niagaraComponent->SetAutoDestroy ( true );
 			}
 		}
+		UE_LOG ( LogTemp , Warning , TEXT ( "test : %d" ) , attackInfoHit.niagaraSystemArray.Num() );
 		attackInfoHit.niagaraSystemArray.Empty ( );
 	}
 	//파티클 시스템
@@ -1756,7 +1760,7 @@ void  ACPP_CharacterPaul::CommentHitFrameExecute ( )
 		// 아무도 안맞았을때
 		sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerMissFrame;
 	}
-
+	sAttackInfo.niagaraSystemArray.Empty();
 	if ( sAttackInfo.DamagePoint == EDamagePointInteraction::Top )
 		sAttackInfo.debugColor = FColor ( 255 , 0 , 0 );
 	else if ( sAttackInfo.DamagePoint == EDamagePointInteraction::Middle )
