@@ -1118,7 +1118,7 @@ void ACPP_CharacterPaul::CommandSangBong1 ( )
 	sAttackInfo.cameraZoom = 0;
 	sAttackInfo.cameraDelay = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 20 , 0 , 0 ) , 20 );
+	this->SetToRelativeLocationFrame ( FVector ( 40 , 0 , 0 ) , 5 );
 
 	// 애니매이션 실행 부분
 	PlayMontageFrameSystem ( uMtgSangBong1 );
@@ -1154,7 +1154,7 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 	sAttackInfo.cameraZoom = 0;
 	sAttackInfo.cameraDelay = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 30 , 0 , 0 ) , 3 );
+	this->SetToRelativeLocationFrame ( FVector ( 100 , 0 , 0 ) , 10 );
 
 	// 애니매이션 실행 부분
 	PlayMontageFrameSystem ( uMtgSangBong2 );
@@ -1207,6 +1207,7 @@ void ACPP_CharacterPaul::CommandMtgLuOu1 ( )
 {
 	if ( DebugMode )
 		UE_LOG ( LogTemp , Warning , TEXT ( "CommandMtgLuOu1 Pressed" ) );
+	
 }
 
 void ACPP_CharacterPaul::CommandMtgLuOu2 ( )
@@ -1278,22 +1279,22 @@ void ACPP_CharacterPaul::AnimationFrame ( )
 	// 인풋이 있을 경우 상대를 바라본다 
 	if ( currKeyValue )
 	{
-		FVector opponentPlayerRotator = aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) );
-		opponentPlayerRotator.Z = GetActorLocation ( ).Z;
-		FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-		GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
-		lookRotator.Yaw += -180 * player1;
-		GetMesh ( )->SetRelativeRotation ( lookRotator );
+// 		FVector opponentPlayerRotator = aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) );
+// 		opponentPlayerRotator.Z = GetActorLocation ( ).Z;
+// 		FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
+// 		GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+// 		lookRotator.Yaw += -180 * player1;
+// 		GetMesh ( )->SetRelativeRotation ( lookRotator );
 
-// 		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
-// 		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+		FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+		Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
 
-//		this->SetActorRotation ( Lookrotation );
-// 
-// 		this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
-// 		Lookrotation.Yaw += -180 * player1;
-// 		Lookrotation.Pitch = 0;
-// 		this->GetMesh ( )->SetRelativeRotation ( Lookrotation );
+		this->SetActorRotation ( Lookrotation );
+
+		this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+		Lookrotation.Yaw += -180 * player1;
+		Lookrotation.Pitch = 0;
+//		this->GetMesh ( )->SetRelativeRotation ( Lookrotation );
 	}
 }
 
