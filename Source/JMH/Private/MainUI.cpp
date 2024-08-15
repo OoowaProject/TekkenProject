@@ -342,11 +342,11 @@ void UMainUI::OnHoveredPaul()
 		//만약 p1이라면
 		Player2Info->SetVisibility(ESlateVisibility::Visible);
 		//폴 정보 입력 
-		Text_Player1Name->SetText(PAUL);
-		Text_Player1Info01->SetText(info1);
-		Text_Player1Info02->SetText(info2);
-		Text_Player1Info03->SetText(info3);
-		Text_Player1Info04->SetText(info4);
+		Text_Player2Name->SetText(PAUL);
+		Text_Player2Info01->SetText(info1);
+		Text_Player2Info02->SetText(info2);
+		Text_Player2Info03->SetText(info3);
+		Text_Player2Info04->SetText(info4);
 	}
 	
 	if (IsUnHoveredO)
@@ -363,11 +363,11 @@ void UMainUI::OnHoveredPaul()
 	{
 		//만약 p2이라면
 		Player1Info->SetVisibility(ESlateVisibility::Visible);
-		Text_Player2Name->SetText(PAUL);
-		Text_Player2Info01->SetText(info1);
-		Text_Player2Info02->SetText(info2);
-		Text_Player2Info03->SetText(info3);
-		Text_Player2Info04->SetText(info4);
+		Text_Player1Name->SetText(PAUL);
+		Text_Player1Info01->SetText(info1);
+		Text_Player1Info02->SetText(info2);
+		Text_Player1Info03->SetText(info3);
+		Text_Player1Info04->SetText(info4);
 	}
 }
 
@@ -383,5 +383,77 @@ void UMainUI::OnUnHoveredPaul()
 	{
 		Player2Info->SetVisibility(ESlateVisibility::Hidden);
 	}
+	
+}
+
+void UMainUI::OnHoveredKazuya()
+{
+	FText Kazuya = FText::FromString(TEXT("KAZUYA"));
+	FText info1 = FText::FromString(TEXT("가라테"));
+	FText info2 = FText::FromString(TEXT("없음"));
+	FText info3 = FText::FromString(TEXT("181cm"));
+	FText info4 = FText::FromString(TEXT("85kg"));
+
+	if (IsUnHoveredB)
+	{
+		//만약 p1이라면
+		Player1Info->SetVisibility(ESlateVisibility::Visible);
+		//폴 정보 입력 
+		Text_Player1Name->SetText(Kazuya);
+		Text_Player1Info01->SetText(info1);
+		Text_Player1Info02->SetText(info2);
+		Text_Player1Info03->SetText(info3);
+		Text_Player1Info04->SetText(info4);
+	}
+
+	else
+	{
+		//만약 p1이라면
+		Player2Info->SetVisibility(ESlateVisibility::Visible);
+		//폴 정보 입력 
+		Text_Player2Name->SetText(Kazuya);
+		Text_Player2Info01->SetText(info1);
+		Text_Player2Info02->SetText(info2);
+		Text_Player2Info03->SetText(info3);
+		Text_Player2Info04->SetText(info4);
+	}
+	
+	if (IsUnHoveredO)
+	{
+		//만약 p2이라면
+		Player2Info->SetVisibility(ESlateVisibility::Visible);
+		Text_Player2Name->SetText(Kazuya);
+		Text_Player2Info01->SetText(info1);
+		Text_Player2Info02->SetText(info2);
+		Text_Player2Info03->SetText(info3);
+		Text_Player2Info04->SetText(info4);
+	}
+	else
+	{
+		//만약 p2이라면
+		Player1Info->SetVisibility(ESlateVisibility::Visible);
+		Text_Player1Name->SetText(Kazuya);
+		Text_Player1Info01->SetText(info1);
+		Text_Player1Info02->SetText(info2);
+		Text_Player1Info03->SetText(info3);
+		Text_Player1Info04->SetText(info4);
+	}
+
+	
+}
+
+void UMainUI::OnUnHoveredKazuya()
+{
+	if (IsUnHoveredB)
+	{
+		//만약 p1이라면
+		Player1Info->SetVisibility(ESlateVisibility::Hidden);
+	}
+
+	else
+	{
+		Player2Info->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 	
 }

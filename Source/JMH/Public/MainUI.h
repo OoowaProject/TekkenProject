@@ -238,6 +238,12 @@ public:
 	UFUNCTION(BlueprintCallable)  
 	void OnUnHoveredPaul();
 
+	UFUNCTION(BlueprintCallable)  
+	void OnHoveredKazuya();
+
+	UFUNCTION(BlueprintCallable)  
+	void OnUnHoveredKazuya();
+
 	UPROPERTY()
 	bool bPlayer1Input=true;
 
