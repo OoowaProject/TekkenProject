@@ -27,6 +27,7 @@
 #include "AIStateWalkCross.h"
 #include "AIStateAttackLH.h"
 #include "AIStateKnockDown.h"
+#include "AIStateGuard.h"
 #include "BrainComponent.h"
 #include "GameMode_MH.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
@@ -85,7 +86,8 @@ AAICharacter::AAICharacter()
 	//collisionBody->SetupAttachment ( GetMesh ( ) , TEXT ( "spine_01" ) );
 	//콜리전 설정
 	//플레이어랑만 충돌
-
+	stateGuard = CreateDefaultSubobject<UAIStateGuard> ( TEXT ( "stateGuard" ) );
+	stateGuard->SetStateOwner ( this );
 	stateBackDash = CreateDefaultSubobject<UAIStateBackDash>(TEXT("stateBackDash"));
 	stateBackDash->SetStateOwner(this);
 	stateRun = CreateDefaultSubobject<UAIStateRun> ( TEXT ( "stateRun" ) );
@@ -504,7 +506,8 @@ void AAICharacter::Tick(float DeltaTime)
 	if ( GetCharacterMovement ( )->IsFalling ( ) )
 	{
 		FVector Gravity = FVector ( 0 , 0 , -980 ); // 기본 중력 값
-		AddMovementInput ( Gravity * DeltaTime,true);
+		//AddMovementInput ( Gravity * DeltaTime,true);
+		GetCapsuleComponent ( )->AddRelativeLocation ( Gravity * DeltaTime , true);
 	}
 	//앞에 적이 있는지 감지하는 line trace
 	if ( currentState == stateRun || currentState == stateWalkForward )
@@ -515,7 +518,7 @@ void AAICharacter::Tick(float DeltaTime)
 		FCollisionQueryParams queryParams;
 		queryParams.AddIgnoredActor ( this );
 		GetWorld ( )->LineTraceSingleByChannel ( hitForwardWalk , traceStartForwardWalk , traceEndForwardWalk , ECollisionChannel::ECC_Camera , queryParams );
-		DrawDebugLine ( GetWorld ( ) , traceStartForwardWalk , traceEndForwardWalk , hitForwardWalk.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 80.0f );
+		//DrawDebugLine ( GetWorld ( ) , traceStartForwardWalk , traceEndForwardWalk , hitForwardWalk.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 80.0f );
 		if ( hitForwardWalk.GetActor ( )==aOpponentPlayer )// && false ==IsValid ( hit.GetActor()) )
 		{
 			//상대를 나의 이동 변화 만큼 민다
@@ -540,7 +543,7 @@ void AAICharacter::Tick(float DeltaTime)
 		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
 	}
 	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
-	UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
+	//UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
 	if ( nullptr != aOpponentPlayer )
 	{
 		FString state = "";
@@ -606,7 +609,13 @@ void AAICharacter::Tick(float DeltaTime)
 	}
 
 }
-
+void AAICharacter::ChangeCollisionResponse ( )
+{
+	if ( GetCapsuleComponent ( )->GetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 ) == ECollisionResponse::ECR_Ignore )
+		GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Block );
+	else																								
+		GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
+}
 // Called to bind functionality to input
 void AAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -679,7 +688,7 @@ float AAICharacter::GetBTWDistance ( )
 		return 0;
 	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
 	distanceBTW -= 50;
-	UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
+	//UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
 	return distanceBTW;
 }
 

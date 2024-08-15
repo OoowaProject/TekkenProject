@@ -33,7 +33,7 @@ void AAICharacterController::SetBehaviorTree (int32 pNum)
 		//카메라 우측이라면
 		if ( !RunBehaviorTree ( behaviortree ) )
 		{
-			UE_LOG ( LogTemp , Error , TEXT ( "LSJ LSJ LSJ AIController couldn't run behavior tree!" ) );
+			//UE_LOG ( LogTemp , Error , TEXT ( "LSJ LSJ LSJ AIController couldn't run behavior tree!" ) );
 		}
 	}
 	else
@@ -41,7 +41,7 @@ void AAICharacterController::SetBehaviorTree (int32 pNum)
 		//카메라 좌측이라면
 		if ( !RunBehaviorTree ( behaviortreePlayer2 ) )
 		{
-			UE_LOG ( LogTemp , Error , TEXT ( "LSJ LSJ LSJ AIController couldn't run behavior tree!" ) );
+			//UE_LOG ( LogTemp , Error , TEXT ( "LSJ LSJ LSJ AIController couldn't run behavior tree!" ) );
 		}
 	}
 }

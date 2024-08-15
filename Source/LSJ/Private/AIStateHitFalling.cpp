@@ -67,6 +67,17 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	//owner->GetMesh ( )->AddForceAtLocation ( FVector ( 0 , -10 , 2000 ) ,owner->aOpponentPlayer->GetActorLocation ( ) );
 	
 
+	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 10000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 5000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	// 기본
+	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
+	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
+	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
+	owner->ChangeCollisionResponse ( );
+	UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , knockbackDirection.X , knockbackDirection.Y , knockbackDirection.Z );
+	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
+
 	if ( WasKnockDown ) //누워있을때 맞는 애니메이션 실행
 	{ 
 		animInstace->StopAllMontages ( 0.5f );
@@ -106,34 +117,25 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	// 캐릭터를 날립니다. (Z축 방향으로는 원하는 높이를 추가할 수 있음)
 	//owner->LaunchCharacter ( FVector ( -4400 , -4400 , 400 ) , true , true );
 
-	//FVector knockbackDirection = owner->GetActorForwardVector() * -1.0f * 100.0f;
-	//knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
-	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
-	//owner->GetCapsuleComponent ( )->AddForce( knockbackDirection , NAME_None , false );
 
 
-
-
-	//owner->GetCapsuleComponent ( )->AddForceAtLocation ( FVector ( 0 , 0 , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ),owner->aOpponentPlayer->GetActorLocation());
-	//owner ->GetMesh()->AddForceAtLocationLocal(FVector(0,0,0),)
-	//owner->LaunchCharacter ( LaunchVelocity , true , true );
-	UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , LaunchVelocity.X , LaunchVelocity.Y , LaunchVelocity.Z );
+	//UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , LaunchVelocity.X , LaunchVelocity.Y , LaunchVelocity.Z );
 
 	currentFrame = 0;
 	targetFrame = attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame;
 	isExitOneMore = false;
 
-	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_EngineTraceChannel4 , ECollisionResponse::ECR_Ignore );
 	StartLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
 	FVector relativePoint =
 		(
-			owner->GetActorForwardVector ( ) *-1.0f* 2.0 * owner->GetCapsuleComponent ( )->GetMass ( ) +
+			owner->GetActorForwardVector ( ) *-1.0f* 1.0 * owner->GetCapsuleComponent ( )->GetMass ( ) +
 			owner->GetActorRightVector ( ) * 0.0* owner->GetCapsuleComponent ( )->GetMass ( ) +
 			owner->GetActorUpVector ( ) * 3.0* owner->GetCapsuleComponent ( )->GetMass ( )
 		);
 	arrivedLocation = StartLocation + relativePoint;
 	LerpAlpha = 0.0f;
 	LerpSpeed = 0.1f;
+
 
 }
 
@@ -163,13 +165,16 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 			Exit ( );
 		}
 	}
-
+	LerpAlpha += deltatime * LerpSpeed;
 	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
 	{
-		LerpAlpha += deltatime * LerpSpeed;
 		FVector CurrentLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
 		FVector NewLocation = FMath::Lerp ( StartLocation , arrivedLocation , LerpAlpha ) - CurrentLocation;
-		owner->GetCapsuleComponent ( )->AddRelativeLocation ( NewLocation );
+		//owner->GetCapsuleComponent ( )->AddRelativeLocation ( NewLocation , true);
+	}
+	else
+	{
+		LerpAlpha += deltatime * LerpSpeed;
 	}
 
 	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
@@ -188,6 +193,7 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 
 void UAIStateHitFalling::Exit ( )
 {
+	owner->ChangeCollisionResponse ( );
 	if ( WasKnockDown ) //누워있을때 맞은경우 다음 상태 녹다운
 	{
 		owner->GetAIStateKnockDown ( )->WasHit = true;

@@ -17,7 +17,8 @@ class LSJ_API AAICharacter : public ACPP_Tekken8CharacterParent
 	class UAICharacterAnimInstance * animInstance;
 
 	class IAIStateInterface* currentState;
-
+	UPROPERTY ( )
+	class UAIStateGuard* stateGuard;
 	UPROPERTY ()
 	class UAIStateBackDash* stateBackDash;
 	UPROPERTY ( )
@@ -128,6 +129,7 @@ public:
 	class USoundBase* hitWeakSFV;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	void ChangeCollisionResponse ( );
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void ChangeState (class IAIStateInterface* NewState );
@@ -139,6 +141,7 @@ public:
 	float GetBTWDistance ( );
 	// 상태 이동 객체에 대한 접근 메서드 추가
 	void SetStateIdle();
+	UAIStateGuard* GetAIStateGuard ( ) const { return stateGuard; }
 	UAIStateKnockDown* GetAIStateKnockDown ( ) const { return stateKnockDown; }
 	UAIStateWalkCross* GetAIStateWalkCross ( ) const { return stateWalkCross; }
 	IAIStateInterface* GetCurrentState ( ) const { return currentState; }
