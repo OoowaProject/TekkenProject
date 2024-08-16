@@ -605,7 +605,7 @@ void AAICharacter::Tick(float DeltaTime)
 			state = "Turn";
 			break;
 		}
-		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
+		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
 
 	}
 
