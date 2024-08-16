@@ -31,10 +31,33 @@ void UAIStateHit::Enter ( UAICharacterAnimInstance* pAnimInstance )
 
 		// 반전된 벡터에 강도 적용
 		FVector LaunchVelocity = direction * -1.f * attackInfoArray[0].KnockBackFallingDirection.X;
-		//owner->LaunchCharacter ( LaunchVelocity , true , true );
-		owner->GetMesh ()->AddForceAtLocation ( LaunchVelocity , owner->aOpponentPlayer->GetActorLocation());
+		//owner->GetMesh ()->AddForceAtLocation ( LaunchVelocity , owner->aOpponentPlayer->GetActorLocation());
 		//owner->GetCharacterMovement ( )->AddImpulse ( attackInfoArray[0].KnockBackDirection * 100.0f , true );
 	}
+	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsGuard" ) , false ); // 원하는 값을 설정
+	float forwardLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorForwardVector ( ) );
+	float rightLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorRightVector ( ) );
+	double addForce = 8000;
+
+	//if ( attackInfoArray[0].DamageAmount == 10 )
+	//10000.0f 1칸
+	//+2000 1칸?
+	//2칸 12000.0f
+	//3칸 14000.0f                                                                                                                            
+	//20000.0f 5칸 발차기를 5칸 
+	if ( forwardLength < 0 )
+		addForce *= -1.0f;
+
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * (forwardLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( rightLength < 0 )
+		addForce *= -1.0f;
+	if ( FMath::Abs ( rightLength ) > 1 )
+		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	knockbackDirection.Z = 0;
+	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
+	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
 
 	//공격 받는 애니메이션 추가
 	animInstace->StopAllMontages ( 0.1f );

@@ -44,6 +44,7 @@ void UAIStateWalkBack::TickComponent ( float DeltaTime , ELevelTick TickType , F
 	Super::TickComponent ( DeltaTime , TickType , ThisTickFunction );
 	//if ( (owner->GetActorLocation() -startPos).Size() > distance )
 	//	Exit ( );
+	owner->SetStateIdle ( );
 	if (!animInstace->StateWalkBack())
 		Exit ( );
 	Execute ( DeltaTime);
