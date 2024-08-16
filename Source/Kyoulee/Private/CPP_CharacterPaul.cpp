@@ -1355,9 +1355,9 @@ void ACPP_CharacterPaul::AnimationFrame ( )
 	}
 	if (bFalling && this->fFallingValue <= 1.0f )
 	{
-		this->fFallingValue += 0.04f;
+		this->fFallingValue += 0.06f;
 	}else if (! bFalling && this->fFallingValue > 0.0f ){
-		this->fFallingValue -= 0.04f;
+		this->fFallingValue -= 0.06f;
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("Falling value %f : is true? %d"), fFallingValue, bFalling);
 	if ( !this->ToLocationFrame.IsEmpty ( ) )
@@ -1725,9 +1725,9 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 
 		return false;
 	}
-	if (attackInfoHit.KnockBackDirection.Z)
+	if (attackInfoHit.KnockBackDirection.Z > 10)
 		this->bFalling = true;
-	if ( fallingHeight > fHeightValue )
+	if ( fallingHeight > fHeightValue  + 10)
 	{
 		this->bFalling = true;
 		this->GetMovementComponent()->Velocity = FVector(0,0,0);
