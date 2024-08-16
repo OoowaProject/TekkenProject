@@ -30,7 +30,7 @@ ACPP_CharacterPaul::ACPP_CharacterPaul ( )
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> tempSkeletalMesh ( TEXT ( "/Script/Engine.SkeletalMesh'/Game/Characters/Mannequins/Meshes/SKM_Manny.SKM_Manny'" ) );
 	if ( tempSkeletalMesh.Succeeded ( ) )
 		uCharacterMesh->SetSkeletalMeshAsset ( tempSkeletalMesh.Object );
-	uCharacterMesh->SetRelativeLocation ( FVector ( 0 , 0 , -80 ) );
+	uCharacterMesh->SetRelativeLocation ( FVector ( 0 , 0 , -83 ) );
 	uCharacterMesh->SetRelativeRotation ( FRotator ( 0 , 0 , -90 ) );
 	uCharacterMesh->SetWorldScale3D(FVector(0.1,0.1,0.1));
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
