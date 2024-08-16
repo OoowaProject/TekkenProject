@@ -38,6 +38,9 @@ public:
 	bool	bNuckDown;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
+	bool	bHpDead;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
 	bool bDead;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )

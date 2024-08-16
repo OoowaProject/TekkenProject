@@ -281,6 +281,9 @@ public:
 	class UAnimMontage* uMtgFallBackHitForBungGuan;
 	UPROPERTY(EditDefaultsOnly, Category="MontageList")
 	class UAnimMontage* uMtgBackDash;
+
+	UPROPERTY(EditDefaultsOnly, Category="MontageList")
+	class UAnimMontage* uMtgDead;
 	/************************************************************************/
 	/*                커멘드 크리에 대한 정보                               */
 	/************************************************************************/
@@ -324,6 +327,8 @@ public:
 	bool bFalling = 0;
 	bool bNuckDown = 0;
 	bool bDead = 0;
+
+	bool bHPDead = false;
 
 	FVector locationlenght;
 
@@ -396,4 +401,6 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite ,Category="ArrowsComp")
 	class UArrowComponent* RootArrowComp;
+	
+
 };

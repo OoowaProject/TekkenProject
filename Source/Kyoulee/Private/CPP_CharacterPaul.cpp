@@ -94,8 +94,6 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	Super::Tick ( DeltaTime );
 	player1 = 0;
 	
-	if (this->bIsDead)
-		return;
 // 	if ( this->GameModeMH->Player1 == this )
 // 	{
 // 		this->player1 = 1;
@@ -142,9 +140,25 @@ void ACPP_CharacterPaul::Tick ( float DeltaTime )
 	// 주의 모든 작업은 FrameSystem에서 하는걸 권장합니다.
 	this->fCurrTimeForFrame += DeltaTime;
 
+	if (this->Hp <= 0)
+		bFalling = true;
+	else
+		bFalling = false;
+
 	if ( this->fCurrTimeForFrame <= this->fFrameTime )
 		return;
+
 	AnimationFrame ( );
+
+	if ( Hp <= 0 )
+	{
+		this->bHPDead = true;
+		return;
+	}
+	else
+		this->bHPDead = false;
+	if ( this->bIsDead )
+		return;
 	sFrameStatus.FrameBlockUsing--;
 	sFrameStatus.FrameUsing--;
 	sAttackInfo.ActionFrame--;
@@ -766,7 +780,7 @@ void ACPP_CharacterPaul::CommandLeadJab ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Top , 5 , 12 , 10 , 0 , 8 , 1 , 8 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , 5 , 50 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 90 , 5 , 60 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 50 , 0 , 0 );
 	sAttackInfo.KnockBackDefenceDir = this->RelativePointVector ( 30 , 0 , 0 );
 
@@ -1672,10 +1686,12 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		aMainCamera->RequestZoomEffect ( attackInfoHit.skellEffectLocation , attackInfoHit.cameraZoom , attackInfoHit.cameraShake , attackInfoHit.cameraDelay );
 	else
 		UE_LOG ( LogTemp , Warning , TEXT ( "is Emtpy " ) );
+	if ( attackInfoHit.DamagePoint == EDamagePointInteraction::Top  && this->eCharacterState  == ECharacterStateInteraction::GuardSit )
+		return false;
 	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Top && this->eCharacterState == ECharacterStateInteraction::GuardStand )
 	{
 
-		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
+		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame * 1.5;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
 		// defense animation 추가하기
 		PlayMontageFrameSystem ( uMtgDefence );
@@ -1687,9 +1703,10 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , uNS_DefenceEffect , attackInfoHit.skellEffectLocation );
 		return false;
 	}
-	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && this->eCharacterState == ECharacterStateInteraction::GuardStand )
+	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && ( this->eCharacterState == ECharacterStateInteraction::GuardStand
+	|| this->eCharacterState == ECharacterStateInteraction::GuardSit) )
 	{
-		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
+		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame * 1.5;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
 
 		//LaunchCharacter ( (attackInfoHit.KnockBackDirection - this->GetActorLocation ( )) * 2 , true , true );
@@ -1709,7 +1726,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 	}
 	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Lower && this->eCharacterState == ECharacterStateInteraction::GuardSit )
 	{
-		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame;
+		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame * 1.5;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );
 
 		//LaunchCharacter ( (attackInfoHit.KnockBackDirection - this->GetActorLocation ( )) * 2 , true , true );
@@ -1741,10 +1758,13 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		this->ToLocationFrame.Empty();
 	}
 	
-	this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeHitFrame;
+	this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeHitFrame * 2.5;
 	this->SetToLocationFrame ( attackInfoHit.KnockBackDirection , attackInfoHit.OppositeHitFrame );
 
 	iCurrFrame = 0;
+	// UI hit newHp 전달하기
+	this->Hp -= attackInfoHit.DamageAmount;
+	this->GameModeMH->UpdatePlayerHP ( this , this->Hp );
 	// heart animation 추가하기
 	if ( this->Hp > 0 )
 	{
@@ -1758,12 +1778,15 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 		else
 			PlayMontageFrameSystem ( uMtgIdleHit );
 	}
+	else
+	{
+		this->uAnim->StopAllMontages ( 0.1f );
+		PlayMontageFrameSystem ( uMtgDead );
+		this->SetToRelativeLocationFrame ( FVector(-120,0,50) , 6 );
+	}
 	// 소리 추가
 	UGameplayStatics::PlaySound2D ( GetWorld ( ) , this->sAttackInfo.uHitSound );
 
-	// UI hit newHp 전달하기
-	this->Hp -= attackInfoHit.DamageAmount;
-	this->GameModeMH->UpdatePlayerHP ( this , this->Hp );
 
 	// 좀 있다 이동 시키기
 	this->eCharacterState = ECharacterStateInteraction::HitGround;
@@ -1839,16 +1862,16 @@ void  ACPP_CharacterPaul::CommentHitFrameExecute ( )
 				ACPP_Tekken8CharacterParent* hitCharacter = Cast<ACPP_Tekken8CharacterParent> ( hitActor );
 				//때려보기
 				if ( hitCharacter->HitDecision ( sAttackInfo , this ) )
-					sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerHitFrame;
+					sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerHitFrame * 1.2;
 				else
-					sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerGuardFrame;
+					sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerGuardFrame * 1.2;
 			}
 		}
 	}
 	else
 	{
 		// 아무도 안맞았을때
-		sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerMissFrame;
+		sFrameStatus.FrameBlockUsing = sAttackInfo.OwnerMissFrame * 1.2;
 	}
 	sAttackInfo.niagaraSystemArray.Empty();
 	if ( sAttackInfo.DamagePoint == EDamagePointInteraction::Top )
