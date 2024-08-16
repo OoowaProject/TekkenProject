@@ -98,7 +98,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player1Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer1 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , -300 , 750) ,
+			PlayerAIClass , FVector(0 , -300 , 50 ) ,
 			FRotator(0 , 90 , 0));
 		if (Player2)
 			Player2->aOpponentPlayer = aiplayer1;
@@ -113,7 +113,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player2Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer2 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , 300 , 750) ,
+			PlayerAIClass , FVector(0 , 300 , 50 ) ,
 			FRotator(0 , -90 , 0));
 		if (Player1)
 			Player1->aOpponentPlayer = aiplayer2;
