@@ -17,6 +17,8 @@ void USettingsUI::NativeConstruct()
 	btn_Mainmenu->OnClicked.AddDynamic(this , &USettingsUI::ShowMainMenuWidget);
 	btn_quit->OnClicked.AddDynamic(this , &USettingsUI::QuitGame);
 	Btn_Back->OnClicked.AddDynamic(this , &USettingsUI::OnClickedBack);
+
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 	
 }
 
@@ -38,7 +40,7 @@ void USettingsUI::ShowChooseWidget()
 			WidgetInstance->WidgetSwitcher->SetActiveWidgetIndex(2);
 		}
 	}
-
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 }
 
 void USettingsUI::ShowMainMenuWidget()
@@ -58,6 +60,7 @@ void USettingsUI::ShowMainMenuWidget()
 			WidgetInstance->WidgetSwitcher->SetActiveWidgetIndex(0);
 		}
 	}
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 }
 
 void USettingsUI::QuitGame()
@@ -67,6 +70,7 @@ void USettingsUI::QuitGame()
 		// Terminate the game session
 		UKismetSystemLibrary::QuitGame(GetWorld(), nullptr, EQuitPreference::Quit, false);
 	}
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 }
 
 void USettingsUI::OnClickedBack()
@@ -82,4 +86,5 @@ void USettingsUI::OnClickedBack()
 		FInputModeGameOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
 	}
+	GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 }
