@@ -128,7 +128,6 @@ public:
 	void CommandStar ( );
 	void CommandEnd ( );
 	void CommandMoveForward ( );
-	void CommandMoveForwardLoop ( );
 	void CommandMoveForwarDash();
 	void CommandMoveBack ();
 	void CommandMoveBackDash();
@@ -278,8 +277,10 @@ public:
 	class UAnimMontage* uMtgLuOu2;
 	UPROPERTY(EditDefaultsOnly, Category="MontageList" )
 	class UAnimMontage* uMtgLuOu3;
-
-
+	UPROPERTY(EditDefaultsOnly, Category="MontageList")
+	class UAnimMontage* uMtgFallBackHitForBungGuan;
+	UPROPERTY(EditDefaultsOnly, Category="MontageList")
+	class UAnimMontage* uMtgBackDash;
 	/************************************************************************/
 	/*                커멘드 크리에 대한 정보                               */
 	/************************************************************************/

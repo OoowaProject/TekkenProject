@@ -36,9 +36,12 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
 	bool	bNuckDown;
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
 	bool bDead;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
+	bool bJump;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite )
 	class ACPP_CharacterPaul* aOwner;

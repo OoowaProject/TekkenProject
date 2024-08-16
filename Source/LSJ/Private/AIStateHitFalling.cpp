@@ -67,15 +67,47 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	//owner->GetMesh ( )->AddForceAtLocation ( FVector ( 0 , -10 , 2000 ) ,owner->aOpponentPlayer->GetActorLocation ( ) );
 	
 
-	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 10000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
-	FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	float forwardLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorForwardVector ( ) );
+	float rightLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorRightVector ( ) );
+	float upLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorUpVector ( ) );
+	double addForce = 8000;
+
+	UE_LOG ( LogTemp , Error , TEXT ( "forwardLength : %f" ) , (forwardLength * 66.67 - 8000.0) );
+	UE_LOG ( LogTemp , Error , TEXT ( "rightLength : %f" ) , rightLength * 66.67 + 8000 );
+	UE_LOG ( LogTemp , Error , TEXT ( "upLength : %f" ) , upLength );
+	UE_LOG ( LogTemp , Error , TEXT ( "upLength * 66.67 + 8000 : %f" ) , upLength * 66.67 + 18000 );
+	//if ( attackInfoArray[0].DamageAmount == 10 )
+	//10000.0f 1칸
+	//+2000 1칸?
+	//2칸 12000.0f
+	//3칸 14000.0f                                                                                                                            
+	//20000.0f 5칸 발차기를 5칸 
+	if ( forwardLength < 0 )
+		addForce *= -1.0f;
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * (forwardLength * 66.67 + addForce + 4000) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( rightLength < 0 )
+		addForce *= -1.0f;
+	if ( FMath::Abs ( rightLength ) > 1 )
+		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( FMath::Abs ( upLength ) > 1 )
+		knockbackDirection.Z = (upLength * 66.67 + 70000) * owner->GetCapsuleComponent ( )->GetMass ( );
+
+	if ( WasHitFalling ) //공중 상태에서 맞았다면
+	{
+		knockbackDirection.Z = (forwardLength * 66.67 + 100000) * owner->GetCapsuleComponent ( )->GetMass ( );
+	}
+
 	// 기본
 	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
-	knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
+	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+
+
+	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	//knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
 	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
 	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
 	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
-	UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , knockbackDirection.X , knockbackDirection.Y , knockbackDirection.Z );
+	
 	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
 
 	if ( WasKnockDown ) //누워있을때 맞는 애니메이션 실행
