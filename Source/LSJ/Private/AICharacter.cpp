@@ -504,7 +504,7 @@ void AAICharacter::Tick(float DeltaTime)
 			bLookTarget = false;
 	}
 
-	if ( GetCharacterMovement ( )->IsFalling ( ) )
+	if ( GetCharacterMovement ( )->IsFalling ( ) && blackboardComp->GetValueAsBool ( TEXT ( "IsStart" )))
 	{
 		FVector Gravity = FVector ( 0 , 0 , -980 ); // 기본 중력 값
 		//AddMovementInput ( Gravity * DeltaTime,true);
