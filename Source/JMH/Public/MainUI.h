@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -169,10 +169,10 @@ public:
 
 	//input 체크
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool IsClickedB;
+	bool IsClickedB = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	bool IsClickedO;
+	bool IsClickedO = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	bool IsUnHoveredB;

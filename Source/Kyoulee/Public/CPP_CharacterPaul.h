@@ -333,7 +333,7 @@ public:
 	FVector locationlenght;
 
 	float fFallingValue = 0;
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable )
 	void BeDead();
 	void SetActtacInfoSkell ( EDamagePointInteraction damagePointInteraction ,
 	int32 damageAmount , int32 actionFrame , int32 retrieveFrame ,
