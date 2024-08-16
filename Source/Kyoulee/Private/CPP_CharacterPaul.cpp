@@ -620,7 +620,10 @@ void ACPP_CharacterPaul::CommandMoveLateralUpDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame (FVector( 50 , -80 , 0 ), 10);
+	if (this->player1)
+		this->SetToRelativeLocationFrame (FVector( 50 , -80 , 0 ), 10);
+	else
+		this->SetToRelativeLocationFrame ( FVector ( 50 , 80 , 0 ) , 10 );
 
 	// 애니매이션 실행 부분 있으면 만들기
 	//PlayMontageFrameSystem ( uMtgMoveLateral );
@@ -638,7 +641,11 @@ void ACPP_CharacterPaul::CommandMoveLateralUpLoop( )
 	sAttackInfo.DamagePoint = EDamagePointInteraction::Special;
 	sAttackInfo.DamageAmount = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 10, -16 , 0 ) ,5 );
+	if ( this->player1 )
+		this->SetToRelativeLocationFrame ( FVector ( 10 , -16 , 0 ) , 5 );
+	else
+		this->SetToRelativeLocationFrame ( FVector ( 10 , 16 , 0 ) , 5 );
+
 
 	// 애니매이션 실행 부분 없음
 
@@ -718,7 +725,11 @@ void ACPP_CharacterPaul::CommandMoveLateralDownDash ( )
 
 	this->sAttackInfo.ActionFrame = 1;
 
-	this->SetToRelativeLocationFrame ( FVector ( 50 , 80 , 0 ) , 10 );
+
+	if (this->player1)
+		this->SetToRelativeLocationFrame ( FVector ( 50 , 80 , 0 ) , 10 );
+	else
+		this->SetToRelativeLocationFrame ( FVector ( 50 , -80 , 0 ) , 10 );
 
 	// 애니매이션 실행 부분 있으면 만들기
 	PlayMontageFrameSystem ( uMtgMoveLateral );
@@ -735,7 +746,11 @@ void ACPP_CharacterPaul::CommandMoveLateralDownLoop ( )
 	sAttackInfo.DamagePoint = EDamagePointInteraction::Special;
 	sAttackInfo.DamageAmount = 0;
 
-	this->SetToRelativeLocationFrame ( FVector ( 10 , 16 , 0 ) , 5 );
+	if ( this->player1 )
+		this->SetToRelativeLocationFrame ( FVector ( 10 , 16 , 0 ) , 5 );
+	else
+		this->SetToRelativeLocationFrame ( FVector ( 10 , -16 , 0 ) , 5 );
+
 
 	// 애니매이션 실행 부분 없음
 
@@ -1135,7 +1150,7 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 
 	SetActtacInfoSkell ( EDamagePointInteraction::Middle , 15 , 9 , 27 , 0 , 8 , 8 , 42 );
 
-	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 110 , -5 , 50 );
+	sAttackInfo.skellEffectLocation = this->RelativePointVector ( 80 , -5 , 50 );
 	sAttackInfo.KnockBackDirection = this->RelativePointVector ( 130 , 0 , 0 );
 	sAttackInfo.KnockBackFallingDirection = this->RelativePointVector ( 110 , 0 , 0 );
 
@@ -1145,7 +1160,7 @@ void ACPP_CharacterPaul::CommandSangBong2 ( )
 	sAttackInfo.cameraZoom = 0.9;
 	sAttackInfo.cameraDelay = 0.3;
 
-	this->SetToRelativeLocationFrame ( FVector ( 100 , 0 , 0 ) , 10 );
+	this->SetToRelativeLocationFrame ( FVector ( 100 , 0 , 0 ) , 7 );
 
 	// 애니매이션 실행 부분
 	PlayMontageFrameSystem ( uMtgSangBong2 );
