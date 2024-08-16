@@ -536,7 +536,7 @@ void AAICharacter::Tick(float DeltaTime)
 	FCollisionQueryParams queryParams;
 	queryParams.AddIgnoredActor ( this );
 	GetWorld ( )->LineTraceSingleByChannel ( hit , traceStart , traceEnd , ECollisionChannel::ECC_Visibility , queryParams );
-	DrawDebugLine ( GetWorld ( ) , traceStart , traceEnd , hit.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 10.0f );
+	//DrawDebugLine ( GetWorld ( ) , traceStart , traceEnd , hit.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 10.0f );
 	if ( hit.bBlockingHit  )// && false ==IsValid ( hit.GetActor()) )
 	{
 		if ( animInstance )
