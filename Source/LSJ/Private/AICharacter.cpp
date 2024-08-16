@@ -211,7 +211,7 @@ AAICharacter::AAICharacter()
 	stateComboLaserAttack->attackInfoArray.Add(attack9);
 
 	FAttackInfoInteraction attackRHMiddle;
-	attackRHMiddle.KnockBackDirection = FVector ( 200.f , 0.f , 10.f ); //-0.5 보다 적게 예상 3*
+	attackRHMiddle.KnockBackDirection = FVector ( 400.f , 0.f , 0.f ); //-0.5 보다 적게 예상 3*
 	attackRHMiddle.KnockBackDefenceDir = FVector ( 70.f , 0.f , 0.f ); // 가드했을때
 	attackRHMiddle.DamageAmount = 23;
 	attackRHMiddle.DamagePoint = EDamagePointInteraction::Middle;
@@ -228,7 +228,7 @@ AAICharacter::AAICharacter()
 	//내가 손해면 - 상대가 손해면 +
 	FAttackInfoInteraction attackTopLH;
 	attackTopLH.KnockBackDirection = FVector ( 30.f , 0.f , 0.f ); // 맞았을때
-	attackRHMiddle.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
+	attackTopLH.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
 	attackTopLH.DamageAmount = 5;
 	attackTopLH.DamagePoint = EDamagePointInteraction::Top;
 	attackTopLH.HitFrame = 10; //HitFrame
@@ -242,8 +242,8 @@ AAICharacter::AAICharacter()
 
 	//내가 손해면 - 상대가 손해면 +
 	FAttackInfoInteraction attackLowerLF;
-	attackTopLH.KnockBackDirection = FVector ( 30.f , 0.f , 0.f ); // 맞았을때
-	attackRHMiddle.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
+	attackLowerLF.KnockBackDirection = FVector ( 30.f , 0.f , 0.f ); // 맞았을때
+	attackLowerLF.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
 	attackLowerLF.DamageAmount = 7;
 	attackLowerLF.DamagePoint = EDamagePointInteraction::Lower;
 	attackLowerLF.HitFrame = 12; //HitFrame
@@ -605,7 +605,7 @@ void AAICharacter::Tick(float DeltaTime)
 			state = "Turn";
 			break;
 		}
-		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
+		GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
 
 	}
 
@@ -670,6 +670,12 @@ int8 AAICharacter::ChangeAttackMotionDependingOpponentState ( )
 {
 	check ( aOpponentPlayer );
 	int8 randomAttackIndex;
+	if ( aOpponentPlayer->eCharacterState == ECharacterStateInteraction::Down )
+	{
+		//공중 상태일때 하단공격
+		randomAttackIndex = 3;
+	}
+	else
 	if ( aOpponentPlayer->eCharacterState == ECharacterStateInteraction::Air )
 	{
 		//공중 상태일때 상단공격
@@ -741,7 +747,7 @@ void AAICharacter::OnAttackCollisionLF ( )
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLFSFV );
 				}
 				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
-
+				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
@@ -784,6 +790,7 @@ void AAICharacter::OnAttackCollisionRF ( )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRFSFV );
 				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
+				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -828,6 +835,7 @@ void AAICharacter::OnAttackCollisionLH ( )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLHSFV );
 				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
+				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -871,6 +879,8 @@ void AAICharacter::OnAttackCollisionRH ( )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRHSFV );
 				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
+				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
+
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
