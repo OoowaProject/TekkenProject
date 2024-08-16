@@ -49,6 +49,7 @@ EBTNodeResult::Type UBTTaskNode_ChangeAttack::ExecuteTask ( UBehaviorTreeCompone
 			if ( stateComponent )
 			{
 				stateComponent->attackPoint = attackPoint;
+				
 				//랜덤 공격 일때 
 				switch ( attackIndex )
 				{

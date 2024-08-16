@@ -494,7 +494,7 @@ void UAICharacterAnimInstance::AnimNotify_Laser ( )
     FCollisionQueryParams collisionParams;
     collisionParams.AddIgnoredActor ( owner );
 
-    DrawDebugLine ( GetWorld ( ) , start , end , FColor::Red , false , 1.0f );
+    //DrawDebugLine ( GetWorld ( ) , start , end , FColor::Red , false , 1.0f );
     if ( GetWorld ( )->LineTraceSingleByChannel (
         hitResult ,
         start ,

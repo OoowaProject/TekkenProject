@@ -33,7 +33,7 @@ EBTNodeResult::Type UBTTaskNode_SelectMove::ExecuteTask ( UBehaviorTreeComponent
 		attackRange = 155.0f;
 		break;
 	case 3: //하단
-		attackRange = 137.0f;
+		attackRange = 97.0f;
 		break;
 	default:
 		attackRange = 100.0f;
@@ -46,6 +46,7 @@ EBTNodeResult::Type UBTTaskNode_SelectMove::ExecuteTask ( UBehaviorTreeComponent
 	// //공격 후 결과는 hit blocked miss
 	if ( distance <= attackRange )
 	{
+		randomAttackIndex = owner->ChangeAttackMotionDependingOpponentState ( );
 		OwnerComp.GetBlackboardComponent ( )->SetValueAsBool( TEXT ( "InAttackRange" ) , true );
 		OwnerComp.GetBlackboardComponent ( )->SetValueAsEnum ( TEXT ( "EMoveState" ) , 0 );
 	}
