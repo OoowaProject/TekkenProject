@@ -76,10 +76,10 @@ public:
 	UPROPERTY(EditDefaultsOnly , BlueprintReadWrite , Category = "Round")
 	int32 player2MaxHP;
 	
-	UPROPERTY(EditDefaultsOnly , BlueprintReadWrite , Category = "Round")
+	UPROPERTY(EditAnywhere , BlueprintReadWrite , Category = "Round")
 	int32 player1HP = player1MaxHP;
 
-	UPROPERTY(EditDefaultsOnly , BlueprintReadWrite , Category = "Round")
+	UPROPERTY(EditAnywhere  , BlueprintReadWrite , Category = "Round")
 	int32 player2HP = player2MaxHP;
 
 	// ** for make Character **//
