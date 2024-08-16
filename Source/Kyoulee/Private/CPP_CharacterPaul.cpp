@@ -70,6 +70,10 @@ void ACPP_CharacterPaul::BeginPlay ( )
 
 }
 
+void ACPP_CharacterPaul::BeDead()
+{
+	this->Hp = 0;
+}
 
 // Called to bind functionality to input
 void ACPP_CharacterPaul::SetupPlayerInputComponent ( UInputComponent* PlayerInputComponent )
@@ -1703,8 +1707,7 @@ bool ACPP_CharacterPaul::HitDecision ( FAttackInfoInteraction attackInfoHit , AC
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , uNS_DefenceEffect , attackInfoHit.skellEffectLocation );
 		return false;
 	}
-	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && ( this->eCharacterState == ECharacterStateInteraction::GuardStand
-	|| this->eCharacterState == ECharacterStateInteraction::GuardSit) )
+	if ( fallingHeight < 100 && attackInfoHit.DamagePoint == EDamagePointInteraction::Middle && this->eCharacterState == ECharacterStateInteraction::GuardStand)
 	{
 		this->sFrameStatus.FrameBlockUsing = attackInfoHit.OppositeGuardFrame * 1.5;
 		this->SetToLocationFrame ( attackInfoHit.KnockBackDefenceDir , attackInfoHit.OppositeGuardFrame );

@@ -105,6 +105,7 @@ void UBTTaskNode_ChangeAttack::TickTask ( UBehaviorTreeComponent& OwnerComp , ui
 	// 상태 완료
 	if ( !bIsWaitingForState )
 	{
+		owner->StopAnimMontage ( );
 		owner->GetBlackboardComponent ( )->SetValueAsEnum ( TEXT ( "ERandomAttack" ) , 0);
 		FinishLatentTask ( OwnerComp , EBTNodeResult::Succeeded );
 	}
