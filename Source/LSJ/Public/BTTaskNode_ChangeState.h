@@ -17,6 +17,8 @@ class LSJ_API UBTTaskNode_ChangeState : public UBTTaskNode
 	float distance;
 	UPROPERTY(EditAnywhere,Category="WalkCross",meta=(AllowPrivateAccess="true") )
 	bool bClockwise;
+	UPROPERTY(EditAnywhere,Category="WalkCross",meta=(AllowPrivateAccess="true") )
+	bool bSit = false;
 	UActorComponent* currentState;
 public:
 	UBTTaskNode_ChangeState ( );

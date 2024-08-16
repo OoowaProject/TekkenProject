@@ -15,7 +15,7 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LSJ_API UAIStateComponent : public UActorComponent , public IAIStateInterface
 {
 	GENERATED_BODY()
-
+	bool targetLookRotationMatchesOnce;
 public:	
 	// Sets default values for this component's properties
 	UAIStateComponent();
@@ -35,7 +35,7 @@ public:
 	virtual void Execute ( const float& deltatime );
 	virtual void Exit ( );
 	virtual void SetStateOwner (class AAICharacter* pOwner);
-	virtual void ToLookTargetRotate( const float& deltaTime );
+	virtual bool ToLookTargetRotate( const float& deltaTime );
 		UPROPERTY(BlueprintAssignable)
     FOnStateWalkForwardComplete OnStateComplete;
 };

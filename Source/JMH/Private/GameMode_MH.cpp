@@ -11,6 +11,7 @@
 #include "PlayerInfoUI.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "Components/TextBlock.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
@@ -65,7 +66,7 @@ void AGameMode_MH::BeginPlay()
 	if (this->Player1Class)
 	{
 		this->Player1 = this->GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			this->Player1Class , FVector(0 , -300 , 0) , FRotator(0 , 90 , 0));
+			this->Player1Class , FVector(0 , -300 , 50) , FRotator(0 , 90 , 0));
 		Control->Player1 = Cast<ACPP_CharacterPaul>(Player1);
 		playerA = Player1;
 
@@ -78,7 +79,7 @@ void AGameMode_MH::BeginPlay()
 	if (this->Player2Class)
 	{
 		this->Player2 = this->GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			this->Player2Class , FVector(0 , 300 , 0) , FRotator(0 , -90 , 0));
+			this->Player2Class , FVector(0 , 300 , 50) , FRotator(0 , -90 , 0));
 		Control->Player2 = Cast<ACPP_CharacterPaul>(Player2);
 		if (this->Player1)
 		{
@@ -97,7 +98,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player1Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer1 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , -300 , 0) ,
+			PlayerAIClass , FVector(0 , -300 , 750) ,
 			FRotator(0 , 90 , 0));
 		if (Player2)
 			Player2->aOpponentPlayer = aiplayer1;
@@ -112,7 +113,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player2Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer2 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , 300 , 0) ,
+			PlayerAIClass , FVector(0 , 300 , 750) ,
 			FRotator(0 , -90 , 0));
 		if (Player1)
 			Player1->aOpponentPlayer = aiplayer2;
@@ -174,6 +175,7 @@ void AGameMode_MH::Tick(float DeltaTime)
 		{
 			//타임 체크
 			CountDown(DeltaTime);
+			
 		}
 	}
 }
@@ -194,10 +196,12 @@ void AGameMode_MH::CountDown(float DeltaTime)
 			}
 			SetGameState(EGameState::RoundEnd);
 		}
+		
 		else
 		{
 			inGameUI->UpdateTimerDisplay(gameTimer);
 		}
+		
 	}
 }
 
@@ -251,11 +255,11 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//5초후 라운드 시작 //인풋 막아두기rl
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &AGameMode_MH::RoundStart , 2.00f , false);
 
-		GEngine->AddOnScreenDebugMessage(-5 , 5.f , FColor::Red , TEXT("RoundStart"));
+		//GEngine->AddOnScreenDebugMessage(-5 , 5.f , FColor::Red , TEXT("RoundStart"));
 		break;
 
 	case EGameState::InProgress:
-		GEngine->AddOnScreenDebugMessage(-9 , 5.f , FColor::Red , TEXT("InProgress"));
+		//GEngine->AddOnScreenDebugMessage(-9 , 5.f , FColor::Red , TEXT("InProgress"));
 
 	//게임 진행 중
 	//HP체크,타임체크
@@ -285,7 +289,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//5초후 라운드 체크-> 다시시작 or 게임오버
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle , this , &AGameMode_MH::CheckForGameOver , 3.0f , false);
 	//CheckForGameOver();
-		GEngine->AddOnScreenDebugMessage(-6 , 5.f , FColor::Red , TEXT("RoundEnd"));
+		//GEngine->AddOnScreenDebugMessage(-6 , 5.f , FColor::Red , TEXT("RoundEnd"));
 		break;
 
 	case EGameState::GameOver:
@@ -364,7 +368,7 @@ void AGameMode_MH::CheckForGameOver()
 {
 	if (IsGameOverConditionMet())
 	{
-		GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("GameOver"));
+		//GEngine->AddOnScreenDebugMessage(-1 , 5.f , FColor::Red , TEXT("GameOver"));
 		SetGameState(EGameState::GameOver);
 	}
 	else

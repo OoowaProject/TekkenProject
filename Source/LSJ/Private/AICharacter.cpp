@@ -27,9 +27,11 @@
 #include "AIStateWalkCross.h"
 #include "AIStateAttackLH.h"
 #include "AIStateKnockDown.h"
+#include "AIStateGuard.h"
 #include "BrainComponent.h"
 #include "GameMode_MH.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AAICharacter::AAICharacter()
@@ -47,7 +49,7 @@ AAICharacter::AAICharacter()
 		GetMesh ( )->SetAnimInstanceClass ( animFinder.Class );
 	}
 	GetMesh ( )->SetRelativeScale3D ( FVector ( 0.1f , 0.1f , 0.1f ) );
-	GetMesh( )->SetRelativeLocation(FVector( -20.0 ,0,-90.f));
+	GetMesh( )->SetRelativeLocation(FVector( -20.0 ,0,-85.f));
 	GetMesh ( )->SetRelativeRotation ( FRotator (  0, -90.f , 0 ) );
 
 	collisionLH = CreateDefaultSubobject<USphereComponent> ( TEXT ( "collisionLH" ) );
@@ -85,7 +87,8 @@ AAICharacter::AAICharacter()
 	//collisionBody->SetupAttachment ( GetMesh ( ) , TEXT ( "spine_01" ) );
 	//콜리전 설정
 	//플레이어랑만 충돌
-
+	stateGuard = CreateDefaultSubobject<UAIStateGuard> ( TEXT ( "stateGuard" ) );
+	stateGuard->SetStateOwner ( this );
 	stateBackDash = CreateDefaultSubobject<UAIStateBackDash>(TEXT("stateBackDash"));
 	stateBackDash->SetStateOwner(this);
 	stateRun = CreateDefaultSubobject<UAIStateRun> ( TEXT ( "stateRun" ) );
@@ -258,17 +261,17 @@ AAICharacter::AAICharacter()
 	{
 		niagaraFXSystem = NE.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack1FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Blink_Fire.NS_Blink_Fire'" ) );
 	if ( basicAttack1FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack1FXSystem = basicAttack1FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/MegaMagicVFXBundle/VFX/MagicalExplosionsVFX/VFX/FlameBlast/Systems/N_FlameBlast.N_FlameBlast'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) );
 	if ( basicAttack2FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack2FXSystem = basicAttack2FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> blockedFXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Sci-Fi_Starter_VFX_Pack_Niagara/Niagara/Sparks/NS_Sparks_26.NS_Sparks_26'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> blockedFXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/Pack_Effects_1/Air_Magic/VFX_Niagara/NS_Air_Magic_Splash.NS_Air_Magic_Splash'" ) );
 	if ( blockedFXSystemFinder.Succeeded ( ) )
 	{
 		blockedFXSystem = blockedFXSystemFinder.Object;
@@ -319,7 +322,7 @@ AAICharacter::AAICharacter()
 	//앞으로만 이동되게 하는 설정
 	//GetCharacterMovement ( )->bOrientRotationToMovement = true;
 	eCharacterState = ECharacterStateInteraction::Idle;
-
+	currentState = stateIdle;
 	AIControllerClass = AAICharacterController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
@@ -405,16 +408,20 @@ void AAICharacter::BeginPlay()
 	float cameraDirection = FVector::DotProduct ( UGameplayStatics::GetPlayerPawn ( GetWorld ( ) , 0 )->GetActorRightVector ( ) , GetActorLocation ( ) );
 	if ( cameraDirection > 0 )
 	{
+		startDirection *= .0;
 		aiController->SetBehaviorTree ( 1 );
 	}
 	else
 	{
+	
 		aiController->SetBehaviorTree ( 2 );
 	}
 	blackboardComp = aiController->GetBlackboardComponent ( );
 	check ( blackboardComp );
 
 	gameMode = Cast<AGameMode_MH> ( UGameplayStatics::GetGameMode ( GetWorld ( ) ) );
+
+	previousLocation = GetActorLocation ( );
 }
 
 void AAICharacter::Tick(float DeltaTime)
@@ -431,7 +438,8 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->StopAllMontages ( 0.0f );
 			animInstance->InitializeAnimation ( );
 			animInstance->bDie = false;
-
+			animInstance->bFalling = false;
+			animInstance->bKnockDown= false;
 			blackboardComp->SetValueAsBool ( TEXT ( "IsStart" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , false );
 			blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , false );
@@ -477,7 +485,10 @@ void AAICharacter::Tick(float DeltaTime)
 	//	//라운드 시작 n초뒤 한번
 	//}
 
-
+	//현재 이동 속도
+	FVector currentLocation = GetActorLocation ( );
+	currentVelocity = (currentLocation - previousLocation) / DeltaTime;
+	previousLocation = currentLocation;
 
 	UpdateState( DeltaTime );
 	
@@ -496,9 +507,44 @@ void AAICharacter::Tick(float DeltaTime)
 	if ( GetCharacterMovement ( )->IsFalling ( ) )
 	{
 		FVector Gravity = FVector ( 0 , 0 , -980 ); // 기본 중력 값
-		AddMovementInput ( Gravity * DeltaTime,true);
+		//AddMovementInput ( Gravity * DeltaTime,true);
+		GetCapsuleComponent ( )->AddRelativeLocation ( Gravity * DeltaTime , true);
 	}
-
+	//앞에 적이 있는지 감지하는 line trace
+	//if ( currentState != stateHit && currentState != stateHitFalling && currentState != stateKnockDown && currentState != stateBound )
+	//{
+	//	FHitResult hitForwardWalk;
+	//	FVector traceStartForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) );//TEXT ( "spine_01" ) );
+	//	FVector traceEndForwardWalk = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetForwardVector ( ) * 60.0f;
+	//	FCollisionQueryParams queryParams;
+	//	queryParams.AddIgnoredActor ( this );
+	//	GetWorld ( )->LineTraceSingleByChannel ( hitForwardWalk , traceStartForwardWalk , traceEndForwardWalk , ECollisionChannel::ECC_Camera , queryParams );
+	//	//DrawDebugLine ( GetWorld ( ) , traceStartForwardWalk , traceEndForwardWalk , hitForwardWalk.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 80.0f );
+	//	if ( hitForwardWalk.GetActor ( )==aOpponentPlayer )// && false ==IsValid ( hit.GetActor()) )
+	//	{
+	//		//상대를 나의 이동 변화 만큼 민다
+	//		FVector directionPush = GetActorLocation ( ) - previousLocation;
+	//		directionPush.Z = 0;
+	//		aOpponentPlayer->GetCapsuleComponent ( )->AddRelativeLocation ( directionPush );
+	//	}
+	//}
+	
+	//누워있을때 바닥인지 감지하는 line trace
+	FHitResult hit;
+	FVector traceStart = GetMesh ( )->GetBoneLocation ((TEXT ( "spine_01" )));//TEXT ( "spine_01" ) );
+	FVector traceEnd = GetMesh ( )->GetBoneLocation ( (TEXT ( "spine_01" )) ) + GetCapsuleComponent ( )->GetUpVector () * -30.0f;
+	FCollisionQueryParams queryParams;
+	queryParams.AddIgnoredActor ( this );
+	GetWorld ( )->LineTraceSingleByChannel ( hit , traceStart , traceEnd , ECollisionChannel::ECC_Visibility , queryParams );
+	//DrawDebugLine ( GetWorld ( ) , traceStart , traceEnd , hit.bBlockingHit ? FColor::Blue : FColor::Red , false , .1f , 0 , 10.0f );
+	if ( hit.bBlockingHit  )// && false ==IsValid ( hit.GetActor()) )
+	{
+		if ( animInstance )
+			animInstance->bOnGround = true;
+		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
+	}
+	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) );
+	//UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
 	if ( nullptr != aOpponentPlayer )
 	{
 		FString state = "";
@@ -562,8 +608,28 @@ void AAICharacter::Tick(float DeltaTime)
 		//GEngine->AddOnScreenDebugMessage ( -1 , 1.f , FColor::Red , FString::Printf ( TEXT ( "eCharacterState : %s " ) , *state) );
 
 	}
+
 }
 
+FVector AAICharacter::RelativePointVector ( float x , float y , float z )
+{
+	FVector relativePoint =
+		(
+			this->GetActorForwardVector ( ) * x +
+			this->GetActorRightVector ( ) * y +
+			this->GetActorUpVector ( ) * z
+		);
+
+	return relativePoint;
+}
+
+void AAICharacter::ChangeCollisionResponse ( )
+{
+	if ( GetCapsuleComponent ( )->GetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 ) == ECollisionResponse::ECR_Ignore )
+		GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Block );
+	else																								
+		GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
+}
 // Called to bind functionality to input
 void AAICharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -577,7 +643,7 @@ void AAICharacter::ChangeState ( IAIStateInterface* NewState )
 	//if ( NewState == stateHit && currentState != stateHit ) {
 	//	currentState->Exit ( );
 	//}
-
+	preState = currentState;
 	currentState = NewState;
 
 	if ( currentState ) {
@@ -634,9 +700,10 @@ float AAICharacter::GetBTWDistance ( )
 		return 0;
 	if ( nullptr == GetMesh ( ) )
 		return 0;
-	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
-	distanceBTW -= 80;
-	UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
+	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) );
+	
+	distanceBTW -= 50;
+	//UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
 	return distanceBTW;
 }
 
@@ -673,7 +740,8 @@ void AAICharacter::OnAttackCollisionLF ( )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLFSFV );
 				}
-			
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
+
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
@@ -715,6 +783,7 @@ void AAICharacter::OnAttackCollisionRF ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRFSFV );
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -758,6 +827,7 @@ void AAICharacter::OnAttackCollisionLH ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackLHSFV );
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
@@ -800,7 +870,7 @@ void AAICharacter::OnAttackCollisionRH ( )
 				if ( currentState->GetAttackCount ( ) == 0 )
 					//사운드
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRHSFV );
-
+				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
 				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
@@ -984,92 +1054,110 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 	//	CheckCollision ( bool guard , UBoxComponent * hitCollision )
 	if ( blackboardComp )
 	{
-		niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
+		preState = currentState;
 
-		
-		Hp = FMath::Clamp(Hp-attackInfo.DamageAmount,0.0f,MaxHp);
+		//niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
 
-		gameMode = Cast<AGameMode_MH>(GetWorld()->GetAuthGameMode());
-		if( gameMode )
-			gameMode->UpdatePlayerHP(this,Hp);
-		// 확대할 위치 , 줌 정도 0.5 기본 , 흔들림정도 , 흔들림 시간
-		aMainCamera->RequestZoomEffect ( GetActorLocation ( ) , 0.5f , 10.0f , 0.3f );
-
-		if ( false == attackInfo.niagaraSystemArray.IsEmpty ( ) )
+		//아이들 상태면 가드 상태로 전환한다.
+		if ( attackInfo.DamagePoint!=EDamagePointInteraction::Lower && (preState == stateIdle || preState == stateGuard) )
+		{ //사운드
+			UGameplayStatics::PlaySound2D ( GetWorld ( ) , guardSFV );
+			niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , blockedFXSystem , attackInfo.skellEffectLocation );
+			ExitCurrentState ( ECharacterStateInteraction::HitGround );
+			stateGuard->SetAttackInfo ( attackInfo );
+			blackboardComp->SetValueAsBool ( TEXT ( "IsGuard" ) , true );
+			return false;
+		}
+		//아이들 상태가 아니라면 히트 상태로 전환한다.
+		else 
 		{
-			for ( auto* niagara : attackInfo.niagaraSystemArray )
-			{
-				//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
-				// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
-				UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
-					this ,
-					niagara ,  // Niagara 시스템의 참조
-					attackInfo.skellEffectLocation,
-					FRotator::ZeroRotator ,
-						FVector ( 1.0f ) ,  // 기본 스케일
-						true ,  // AutoDestroy를 true로 설정
-						true ,  // AutoActivate를 true로 설정
-						ENCPoolMethod::None // 풀링 방식을 None으로 설정
-				);
+			Hp = FMath::Clamp ( Hp - attackInfo.DamageAmount , 0.0f , MaxHp );
 
-				// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
-				if ( niagaraComponent )
+			gameMode = Cast<AGameMode_MH> ( GetWorld ( )->GetAuthGameMode ( ) );
+			if ( gameMode )
+				gameMode->UpdatePlayerHP ( this , Hp );
+
+			if ( false == attackInfo.niagaraSystemArray.IsEmpty ( ) )
+			{
+				for ( auto* niagara : attackInfo.niagaraSystemArray )
 				{
-					niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
-					niagaraComponent->SetAutoDestroy ( true );
+					//UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagara , attackInfo.skellEffectLocation );
+					// Niagara 시스템을 스폰하고 컴포넌트를 가져옴
+					UNiagaraComponent* niagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation (
+						this ,
+						niagara ,  // Niagara 시스템의 참조
+						attackInfo.skellEffectLocation,
+						FRotator::ZeroRotator ,
+							FVector ( 1.0f ) ,  // 기본 스케일
+							true ,  // AutoDestroy를 true로 설정
+							true ,  // AutoActivate를 true로 설정
+							ENCPoolMethod::None // 풀링 방식을 None으로 설정
+					);
+
+					// 자동으로 파괴되도록 설정 (한 번만 실행 후 제거)
+					if ( niagaraComponent )
+					{
+						niagaraComponent->SetWorldScale3D ( FVector ( 0.1f ) );
+						niagaraComponent->SetAutoDestroy ( true );
+					}
 				}
 			}
-		}
-		if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )
-		{
-			for ( auto* particle : attackInfo.particleSystemArray )
+			if ( false == attackInfo.particleSystemArray.IsEmpty ( ) )
 			{
-				UGameplayStatics::SpawnEmitterAtLocation ( GetWorld ( ) , particle , attackInfo.skellEffectLocation );
+				for ( auto* particle : attackInfo.particleSystemArray )
+				{
+					UGameplayStatics::SpawnEmitterAtLocation ( GetWorld ( ) , particle , attackInfo.skellEffectLocation );
+				}
 			}
-		}
-	
+			attackInfo.niagaraSystemArray.Empty ( );
 
-		//사운드
-		UGameplayStatics::PlaySound2D ( GetWorld ( ) , hitWeakSFV );
-		if ( currentState == stateKnockDown && stateKnockDown->isKnockDown )
-		{
-			//공격 받을 때 지연 프레임을 받아서 HitFalling 상태에 전달하고
-			//HitFalling 상태에서 이전 상태가 stateKnockDown 이면 누워서 맞는 애니메이션을 지연 프레임만큼 실행하고
-			//해당 애니메이션이 끝나면 stateKnockDown 에 지연이 끝났다는 것을 알리고 stateKnockDown 상태로 변경한다.
-			ExitCurrentState ( ECharacterStateInteraction::HitGround );
-			stateKnockDown->SetAttackInfo ( attackInfo );
-			stateHitFalling->SetAttackInfo ( attackInfo );
-			stateHitFalling->WasKnockDown = true;
-			blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
-			eCharacterState = ECharacterStateInteraction::Sit;
-		}
-		else
-		{
-			if ( attackInfo.KnockBackFallingDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+			//사운드
+			UGameplayStatics::PlaySound2D ( GetWorld ( ) , hitWeakSFV );
+			if ( currentState == stateKnockDown && stateKnockDown->isKnockDown )
 			{
+				//공격 받을 때 지연 프레임을 받아서 HitFalling 상태에 전달하고
+				//HitFalling 상태에서 이전 상태가 stateKnockDown 이면 누워서 맞는 애니메이션을 지연 프레임만큼 실행하고
+				//해당 애니메이션이 끝나면 stateKnockDown 에 지연이 끝났다는 것을 알리고 stateKnockDown 상태로 변경한다.
 				ExitCurrentState ( ECharacterStateInteraction::HitGround );
+				stateKnockDown->SetAttackInfo ( attackInfo );
 				stateHitFalling->SetAttackInfo ( attackInfo );
+				stateHitFalling->WasKnockDown = true;
 				blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
+				eCharacterState = ECharacterStateInteraction::Sit;
 			}
-		
-			/*else if ( )
-			{
-				stateBound->SetAttackInfo ( attackInfo );
-				blackboardComp->SetValueAsBool ( TEXT ( "IsBound" ) , true );
-			}*/
-		
 			else
 			{
-				ExitCurrentState ( ECharacterStateInteraction::HitGround );
-				stateHit->SetAttackInfo ( attackInfo );
-				blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , true );
+				if ( attackInfo.KnockBackDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+				{
+					if ( currentState != stateBound && currentState != stateHitFalling )
+						// 확대할 위치 , 줌 정도 0.5 기본 , 흔들림정도 , 흔들림 시간
+						aMainCamera->RequestZoomEffect ( GetActorLocation ( ) , 0.9f , 10.0f , 0.3f );
+					ExitCurrentState ( ECharacterStateInteraction::HitGround );
+					if ( preState == stateHitFalling )
+						stateHitFalling->WasHitFalling = true;
+					stateHitFalling->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
+				}
+		
+				/*else if ( )
+				{
+					stateBound->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsBound" ) , true );
+				}*/
+		
+				else
+				{
+					ExitCurrentState ( ECharacterStateInteraction::HitGround );
+					stateHit->SetAttackInfo ( attackInfo );
+					blackboardComp->SetValueAsBool ( TEXT ( "IsHit" ) , true );
+				}
 			}
-		}
-		OnHit.Broadcast ( );
-		if ( Hp <= 0 )
-		{
-			bIsDead = true;
-			animInstance->bDie = true;
+			OnHit.Broadcast ( );
+			if ( Hp <= 0 )
+			{
+				bIsDead = true;
+				animInstance->bDie = true;
+			}
 		}
 	}
 
@@ -1110,12 +1198,46 @@ void AAICharacter::LookTarget (const float& deltaTime)
 {
 	if(nullptr==aOpponentPlayer)
 		return;
+	/*
 	FVector opponentPlayerRotator = aOpponentPlayer->GetMesh()->GetBoneLocation((TEXT("head")));
 	opponentPlayerRotator.Z = GetActorLocation ( ).Z;
 	FRotator lookRotator = (opponentPlayerRotator - GetActorLocation ( )).Rotation ( );
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+
+	GetCapsuleComponent ( )->SetRelativeRotation (  lookRotator );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetRelativeRotation ( lookRotator );
+	*/
+	
+	FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+	Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+
+	this->SetActorRotation ( Lookrotation );
+
+	this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+	Lookrotation.Yaw += -180 * startDirection;
+	Lookrotation.Pitch = 0;
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }
 void AAICharacter::LookTarget ( const float& deltaTime , FRotator lookRotator)
 {
-	SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
+	//GetCapsuleComponent ( )->SetRelativeRotation ( lookRotator );
+	//lookRotator.Yaw += 180 * startDirection;
+	//GetMesh ( )->SetRelativeRotation ( lookRotator );
+	
+
+	FRotator Lookrotation = UKismetMathLibrary::FindLookAtRotation ( this->GetActorLocation ( ) , this->aOpponentPlayer->GetActorLocation ( ) );
+	Lookrotation.Pitch = this->GetActorRotation ( ).Pitch;
+
+	this->SetActorRotation ( Lookrotation );
+
+	this->GetCapsuleComponent ( )->SetRelativeRotation ( Lookrotation );
+	Lookrotation.Yaw += -180 * startDirection;
+	Lookrotation.Pitch = 0;
+
+	/*GetCapsuleComponent ( )->SetWorldRotation ( FMath::RInterpTo ( GetCapsuleComponent ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	lookRotator.Yaw += 180 * startDirection;
+	GetMesh ( )->SetWorldRotation ( FMath::RInterpTo ( GetMesh ( )->GetComponentRotation ( ) , lookRotator , deltaTime , 1.0f ) );
+	*/
+	
+	//SetActorRotation ( FMath::RInterpTo ( GetActorRotation ( ) , lookRotator , deltaTime , 20.0f ) );
 }

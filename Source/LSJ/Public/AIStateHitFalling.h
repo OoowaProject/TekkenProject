@@ -20,7 +20,12 @@ class LSJ_API UAIStateHitFalling : public UAIStateComponent
 	int32 targetFrame = 0;
 	bool isExitOneMore;
 
+	FVector StartLocation;
+	FVector arrivedLocation;
+	float LerpAlpha;
+	float LerpSpeed;
 public:
+	bool WasHitFalling;
 	bool WasKnockDown;
 	void SetAttackInfo ( FAttackInfoInteraction& pAttackInfo );
 	virtual void Enter ( class UAICharacterAnimInstance* pAnimInstance ) override;

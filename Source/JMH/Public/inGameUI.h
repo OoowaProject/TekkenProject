@@ -53,6 +53,9 @@ public:
 	class UTextBlock* text_Round;
 
 	UPROPERTY(EditAnywhere,meta=(BindWidget),Category="MySettings")
+	class UTextBlock* text_Timer_0;
+
+	UPROPERTY(EditAnywhere,meta=(BindWidget),Category="MySettings")
 	class UCanvasPanel* can_Round;
 
 	UPROPERTY(EditAnywhere,meta=(BindWidget),Category="MySettings")

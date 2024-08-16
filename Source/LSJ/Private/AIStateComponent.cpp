@@ -4,6 +4,7 @@
 #include "AIStateComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AICharacter.h"
+#include "Components/CapsuleComponent.h"
 // Sets default values for this component's properties
 UAIStateComponent::UAIStateComponent()
 {
@@ -49,9 +50,12 @@ void UAIStateComponent::Enter ( class UAICharacterAnimInstance* pAnimInstance )
 	//초기 상대를 바라보는 Rotator
 	if ( nullptr== owner || nullptr == owner->aOpponentPlayer )
 		return;
+
 	FVector opponentPlayerRotator = owner->aOpponentPlayer->GetMesh()->GetBoneLocation((TEXT("head")));
 	opponentPlayerRotator.Z = owner->GetActorLocation ( ).Z;
 	toLookTargetRotator = (opponentPlayerRotator - owner->GetActorLocation ( )).Rotation ( );
+
+	targetLookRotationMatchesOnce = false;
 }
 
 void UAIStateComponent::Execute ( const float& deltatime )
@@ -71,10 +75,18 @@ void UAIStateComponent::SetStateOwner ( AAICharacter* pOwner )
 	owner = pOwner;
 }
 
-void UAIStateComponent::ToLookTargetRotate (const float& deltaTime)
+bool UAIStateComponent::ToLookTargetRotate (const float& deltaTime)
 {
 	if(nullptr==owner)
-		return;
-	if ( FMath::Abs ( toLookTargetRotator.Yaw - owner->GetActorRotation ( ).Yaw ) > 0.1 )
-		owner->LookTarget ( deltaTime , toLookTargetRotator );
+		return false;
+	if ( targetLookRotationMatchesOnce )
+		return true;
+
+	if ( FMath::Abs ( toLookTargetRotator.Yaw - owner->GetMesh()->GetComponentRotation().Yaw ) < 0.1 )
+	{
+		targetLookRotationMatchesOnce = true;
+		return true;
+	}
+	owner->LookTarget ( deltaTime , toLookTargetRotator );
+	return false;
 }

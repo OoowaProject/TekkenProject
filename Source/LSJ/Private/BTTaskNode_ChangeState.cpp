@@ -15,6 +15,7 @@
 #include "AIStateBound.h"
 #include "AIStateWalkCross.h"
 #include "AIStateKnockDown.h"
+#include "AIStateGuard.h"
 UBTTaskNode_ChangeState::UBTTaskNode_ChangeState ( )
 {
 	
@@ -55,6 +56,10 @@ EBTNodeResult::Type UBTTaskNode_ChangeState::ExecuteTask ( UBehaviorTreeComponen
 			}
 			else if ( newStateClass == UAIStateBound::StaticClass ( ) )
 			{
+				if ( false == OwnerComp.GetBlackboardComponent ( )->GetValueAsBool ( TEXT ( "IsBound" ) ) )
+				{
+					return EBTNodeResult::Succeeded;
+				}
 				currentState = Enemy->GetAIStateBound ( );
 			}
 			else if ( newStateClass == UAIStateWalkCross::StaticClass ( ) )
@@ -68,6 +73,10 @@ EBTNodeResult::Type UBTTaskNode_ChangeState::ExecuteTask ( UBehaviorTreeComponen
 			else if ( newStateClass == UAIStateKnockDown::StaticClass ( ) )
 			{
 				currentState = Enemy->GetAIStateKnockDown ( );
+			}
+			else if ( newStateClass == UAIStateGuard::StaticClass ( ) )
+			{
+				currentState = Enemy->GetAIStateGuard ( );
 			}
 			if ( currentState )
 			{
@@ -119,6 +128,12 @@ EBTNodeResult::Type UBTTaskNode_ChangeState::ExecuteTask ( UBehaviorTreeComponen
 				{
 					if ( !stateKnockDown->OnStateComplete.IsAlreadyBound ( this , &UBTTaskNode_ChangeState::OnStateCompleted ) )
 						stateKnockDown->OnStateComplete.AddDynamic ( this , &UBTTaskNode_ChangeState::OnStateCompleted );
+				}
+				else if ( UAIStateGuard* stateGuard = Cast<UAIStateGuard> ( currentState ) )
+				{
+					//stateGuard -> bSit = bSit;
+					if ( !stateGuard->OnStateComplete.IsAlreadyBound ( this , &UBTTaskNode_ChangeState::OnStateCompleted ) )
+						stateGuard->OnStateComplete.AddDynamic ( this , &UBTTaskNode_ChangeState::OnStateCompleted );
 				}
 				bIsWaitingForState = true;
 				cachedOwnerComp = &OwnerComp;

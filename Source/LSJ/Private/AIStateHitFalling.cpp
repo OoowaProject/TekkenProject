@@ -24,8 +24,8 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 {
 	Super::Enter ( pAnimInstance );
 	//owner->collisionLower->SetCollisionEnabled ( ECollisionEnabled::NoCollision );
-
-	animInstace->bKnockDown = false;
+	animInstace->bOnGround = false;
+	animInstace->bKnockDown = true;
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKockDown" ) , false );
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsHitFalling" ) , false );
 	
@@ -61,38 +61,114 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 
 	// 계산된 방향 벡터에 속도를 곱합니다.
 	FVector LaunchVelocity = LaunchDirection * LaunchSpeed;
+	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 500000000000000.0f ) , NAME_None , true );
 
-
-	//owner->LaunchCharacter ( FVector (0,0 ,400) , true , true );
+	//owner->LaunchCharacter ( FVector (0,0 ,40000000) , true , true );
 	//owner->GetMesh ( )->AddForceAtLocation ( FVector ( 0 , -10 , 2000 ) ,owner->aOpponentPlayer->GetActorLocation ( ) );
-	if ( WasKnockDown )
-	{ //누워있을때 맞는 애니메이션 실행
-		animInstace->StopAllMontages ( 0.5f );
-		animInstace->PlayMontageAtFrameRate ( animInstace->hitKnockDownMontage,attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
-	}
-	//FAttackInfoInteraction attackInfo =  attackInfoArray[0], 
-	else if (attackInfoArray.IsValidIndex ( 0 ) && attackInfoArray[0].hitMontage != nullptr )
+	
+
+	float forwardLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorForwardVector ( ) );
+	float rightLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorRightVector ( ) );
+	float upLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorUpVector ( ) );
+	double addForce = 8000;
+
+	UE_LOG ( LogTemp , Error , TEXT ( "forwardLength : %f" ) , (forwardLength * 66.67 - 8000.0) );
+	UE_LOG ( LogTemp , Error , TEXT ( "rightLength : %f" ) , rightLength * 66.67 + 8000 );
+	UE_LOG ( LogTemp , Error , TEXT ( "upLength : %f" ) , upLength );
+	UE_LOG ( LogTemp , Error , TEXT ( "upLength * 66.67 + 8000 : %f" ) , upLength * 66.67 + 18000 );
+	//if ( attackInfoArray[0].DamageAmount == 10 )
+	//10000.0f 1칸
+	//+2000 1칸?
+	//2칸 12000.0f
+	//3칸 14000.0f                                                                                                                            
+	//20000.0f 5칸 발차기를 5칸 
+	if ( forwardLength < 0 )
+		addForce *= -1.0f;
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * (forwardLength * 66.67 + addForce + 4000) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( rightLength < 0 )
+		addForce *= -1.0f;
+	if ( FMath::Abs ( rightLength ) > 1 )
+		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( FMath::Abs ( upLength ) > 1 )
+		knockbackDirection.Z = (upLength * 66.67 + 70000) * owner->GetCapsuleComponent ( )->GetMass ( );
+
+	if ( WasHitFalling ) //공중 상태에서 맞았다면
 	{
+		knockbackDirection.Z = (forwardLength * 66.67 + 100000) * owner->GetCapsuleComponent ( )->GetMass ( );
+	}
+
+	// 기본
+	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+
+
+	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	//knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
+	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
+	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
+	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
+	
+	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
+
+	if ( WasKnockDown ) //누워있을때 맞는 애니메이션 실행
+	{ 
+		animInstace->StopAllMontages ( 0.5f );
+		animInstace->PlayMontageAtFrameRate ( animInstace->hitKnockDownMontage , attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
+		animInstace->bFalling = false;
+	}
+	else
+	if ( WasHitFalling ) //공중 상태에서 맞았다면
+	{
+		animInstace->bFalling = true;
+		//공중 상태에서 띄우는 공격을 맞았다면 더 띄우기
+
+		//공중 상태에서 보통 공격을 맞았다면 공격력에 따라서 띄우기
+		LaunchDirection.Z += 10.f;
+		LaunchVelocity = LaunchDirection * LaunchSpeed;
+		//hitFalling 몽타주를 실행
+		owner->PlayAnimMontage ( animInstace->hitFallingAirMontage );
+		animInstace->bFalling = true;
+	}
+	//FAttackInfoInteraction attackInfo =  attackInfoArray[0],  
+	else if (attackInfoArray.IsValidIndex ( 0 ) && attackInfoArray[0].hitMontage != nullptr ) //나에게 몽타주가 없는 것이라면 상대가 몽타주 정보를 전달해준다
+	{
+		animInstace->bFalling = true;
 		animInstace->StopAllMontages ( 0.1f );
 		owner->PlayAnimMontage ( attackInfoArray[0].hitMontage );
 		//animInstace->PlayHitFallingMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 	}
-	else
+	else //서있는 상태 혹은 앉아있는 상태에서 공격받은 경우
 	{
+		animInstace->bFalling = true;
 		animInstace->StopAllMontages ( 0.1f );
-		animInstace->PlayHitFallingMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
+		//animInstace->PlayHitFallingMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 		//animInstace->PlayHitFallingTurnMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 	}
 	//owner->GetCharacterMovement ( )->AddImpulse ( attackInfoArray[0].KnockBackDirection * 100.0f , true );
 	
 	// 캐릭터를 날립니다. (Z축 방향으로는 원하는 높이를 추가할 수 있음)
-	owner->LaunchCharacter ( LaunchVelocity , true , true );
+	//owner->LaunchCharacter ( FVector ( -4400 , -4400 , 400 ) , true , true );
+
+
+
+	//UE_LOG ( LogTemp , Error , TEXT ( "%f , %f , %f" ) , LaunchVelocity.X , LaunchVelocity.Y , LaunchVelocity.Z );
 
 	currentFrame = 0;
 	targetFrame = attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame;
 	isExitOneMore = false;
-		//owner->GetCharacterMovement ( )->AddImpulse ( attackInfoArray[0].KnockBackDirection * 100.0f , true );
-		//owner->LaunchCharacter ( attackInfoArray[0].KnockBackDirection , true , true );
+
+	StartLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
+	FVector relativePoint =
+		(
+			owner->GetActorForwardVector ( ) *-1.0f* 1.0 * owner->GetCapsuleComponent ( )->GetMass ( ) +
+			owner->GetActorRightVector ( ) * 0.0* owner->GetCapsuleComponent ( )->GetMass ( ) +
+			owner->GetActorUpVector ( ) * 3.0* owner->GetCapsuleComponent ( )->GetMass ( )
+		);
+	arrivedLocation = StartLocation + relativePoint;
+	LerpAlpha = 0.0f;
+	LerpSpeed = 0.1f;
+
+
 }
 
 void UAIStateHitFalling::Execute ( const float& deltatime )
@@ -100,46 +176,73 @@ void UAIStateHitFalling::Execute ( const float& deltatime )
 	currnetLocationZ = owner->GetMesh ( )->GetSocketLocation ( TEXT ( "root" ) ).Z;
 	if( maxLocationZ < currnetLocationZ )
 		maxLocationZ = currnetLocationZ;
-
+	
 	//if ( false == owner->GetCharacterMovement ( )->IsFalling ( )&& maxLocationZ - minLocationZ > 5.f )
 	//spine_01 의 위치가 -85.f 보다 작을 때 해당 애니메이션이 끝남
-
-	if ( owner->GetMesh ( )->GetSocketLocation ( TEXT ( "spine_01" ) ).Z  < -85.f )
-	{
-		if ( !WasKnockDown )
-			Exit();
-	}
 	currentFrame++;
-	if ( targetFrame <= currentFrame && !isExitOneMore)
+	if ( WasKnockDown ) // 누워있을때 타격 되면
 	{
-		isExitOneMore = true;
-		if ( WasKnockDown )
+		
+		if ( targetFrame <= currentFrame && !isExitOneMore )
+		{
+			isExitOneMore = true;
+			Exit ( );
+		}
+	}
+	else //공격 받은 경우
+	{
+		//if ( owner->GetMesh ( )->GetSocketLocation ( TEXT ( "spine_01" ) ).Z < -85.f )
+		if(animInstace && animInstace->bOnGround)
 		{
 			Exit ( );
 		}
-	
+	}
+	LerpAlpha += deltatime * LerpSpeed;
+	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
+	{
+		FVector CurrentLocation = owner->GetCapsuleComponent ( )->GetRelativeLocation ( );
+		FVector NewLocation = FMath::Lerp ( StartLocation , arrivedLocation , LerpAlpha ) - CurrentLocation;
+		//owner->GetCapsuleComponent ( )->AddRelativeLocation ( NewLocation , true);
+	}
+	else
+	{
+		LerpAlpha += deltatime * LerpSpeed;
+	}
+
+	if ( currentFrame <= attackInfoArray[0].OppositeHitFrame )
+	{
+		FVector relativePoint =
+			(
+				owner->GetActorForwardVector ( ) * 200.0 +
+				owner->GetActorRightVector ( ) * 0.0 +
+				owner->GetActorUpVector ( ) * 300.0
+			);
+		//owner->GetActorForwardVector() * 
+		
+		//owner->GetCapsuleComponent ( )->AddRelativeLocation ( FMath::Lerp ( FVector ( 0 , 0 , 0 ) , relativePoint , ((float)currentFrame / attackInfoArray[0].OppositeHitFrame)) );
 	}
 }
 
 void UAIStateHitFalling::Exit ( )
 {
-	if ( WasKnockDown )
+	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Block );
+
+	if ( WasKnockDown ) //누워있을때 맞은경우 다음 상태 녹다운
 	{
 		owner->GetAIStateKnockDown ( )->WasHit = true;
-		animInstace->bKnockDown = true;
 		owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKnockDown" ) , true );
 		WasKnockDown = false;
 	}
 	else
-	if ( maxLocationZ - minLocationZ > 10.f )
+	if ( maxLocationZ - minLocationZ > 10.f ) //높이 띄운 경우 다음 상태 바운드
 	{
 		owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsBound" ) , true );
 		owner->GetAIStateBound ( )->SetAttackInfo ( attackInfoArray[0] );
 	}
 	else
 	{
-		animInstace->bKnockDown = true;
 		owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsKnockDown" ) , true );
 	}
+	WasHitFalling = false;
 	Super::Exit ( );
 }

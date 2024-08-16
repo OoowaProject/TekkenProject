@@ -24,6 +24,10 @@ class LSJ_API UAIStateAttackRH : public UAIStateComponent
 	float totalTime;
 	FVector startLocation;
 	bool btest;
+
+	float walkSpeed;
+	float moveStartTime;
+	float moveEndTime;
 public:
 	virtual void Enter ( class UAICharacterAnimInstance* pAnimInstance ) override;
 	virtual void Execute ( const float& deltatime ) override;

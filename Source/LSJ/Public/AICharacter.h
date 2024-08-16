@@ -17,7 +17,8 @@ class LSJ_API AAICharacter : public ACPP_Tekken8CharacterParent
 	class UAICharacterAnimInstance * animInstance;
 
 	class IAIStateInterface* currentState;
-
+	UPROPERTY ( )
+	class UAIStateGuard* stateGuard;
 	UPROPERTY ()
 	class UAIStateBackDash* stateBackDash;
 	UPROPERTY ( )
@@ -107,7 +108,7 @@ protected:
 	virtual void BeginPlay() override;
 	bool isResume;
 	bool isPause;
-	AGameMode_MH* gameMode;
+	class AGameMode_MH* gameMode;
 public:
 	//사운드
 	UPROPERTY(EditDefaultsOnly)
@@ -128,6 +129,8 @@ public:
 	class USoundBase* hitWeakSFV;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	FVector RelativePointVector ( float x , float y , float z );
+	void ChangeCollisionResponse ( );
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void ChangeState (class IAIStateInterface* NewState );
@@ -139,6 +142,7 @@ public:
 	float GetBTWDistance ( );
 	// 상태 이동 객체에 대한 접근 메서드 추가
 	void SetStateIdle();
+	UAIStateGuard* GetAIStateGuard ( ) const { return stateGuard; }
 	UAIStateKnockDown* GetAIStateKnockDown ( ) const { return stateKnockDown; }
 	UAIStateWalkCross* GetAIStateWalkCross ( ) const { return stateWalkCross; }
 	IAIStateInterface* GetCurrentState ( ) const { return currentState; }
@@ -189,10 +193,14 @@ public:
 	//공격받았을때 델리게이트 
 	UPROPERTY(BlueprintAssignable)
     FOnHit OnHit;
-	UBlackboardComponent* GetBlackboardComponent()
+	class UBlackboardComponent* GetBlackboardComponent()
 	{
 		return blackboardComp;
 	};
-
+	float startDirection = 1.0f;
 	FVector direction;
+	class IAIStateInterface* preState;
+
+		UPROPERTY(EditAnywhere, BlueprintReadWrite )
+	FVector previousLocation;
 };

@@ -24,6 +24,15 @@ void UinGameUI::UpdateTimerDisplay(float TimerValue)
 		// 타이머 값을 문자열로 변환
 		FString TimerString = FString::Printf(TEXT("%.0f") , TimerValue);
 
+		if(TimerString == TEXT("9"))
+				
+		{
+			text_Timer_0->SetVisibility(ESlateVisibility::Visible);
+		}
+		else if(TimerString == TEXT("60"))
+		{
+			text_Timer_0->SetVisibility(ESlateVisibility::Hidden);
+		}
 		if (TimerString == TEXT("0"))
 		{
 			text_Timer->SetText(FText::FromString(TEXT("0")));
