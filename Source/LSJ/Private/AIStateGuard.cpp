@@ -34,6 +34,9 @@ void UAIStateGuard::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	//가드 되는 동안 또 공격 당하면 가드상태
 
 	owner->GetBlackboardComponent ( )->SetValueAsBool ( TEXT ( "IsGuard" ) , false ); // 원하는 값을 설정
+	double forwardLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorForwardVector ( ) );
+	double rightLength = FVector::DotProduct ( attackInfoArray[0].KnockBackDirection , owner->GetActorRightVector ( ) );
+	double addForce = 8000;
 
 	//if ( attackInfoArray[0].DamageAmount == 10 )
 	//10000.0f 1칸
@@ -41,7 +44,14 @@ void UAIStateGuard::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	//2칸 12000.0f
 	//3칸 14000.0f                                                                                                                            
 	//20000.0f 5칸 발차기를 5칸 
-	FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 14000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( forwardLength < 0 )
+		addForce *= -1.0f;
+
+	FVector knockbackDirection = owner->GetActorForwardVector ( ) * (forwardLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+	if ( rightLength < 0 )
+		addForce *= -1.0f;
+	if( FMath::Abs(rightLength) > 1)
+		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
 	// 기본
 	// knockbackDirection.Z = 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );
 	//FVector knockbackDirection = owner->GetActorForwardVector ( ) * -1.0f * 20000.0f * owner->GetCapsuleComponent ( )->GetMass ( );

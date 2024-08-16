@@ -543,7 +543,7 @@ void AAICharacter::Tick(float DeltaTime)
 			animInstance->bOnGround = true;
 		//UE_LOG ( LogTemp , Log , TEXT ( "Trace hit actor: %s" ) , *hit.GetActor ( )->GetName ( ) );
 	}
-	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
+	float distance = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) );
 	//UE_LOG ( LogTemp , Error , TEXT ("%f"), distance );
 	if ( nullptr != aOpponentPlayer )
 	{
@@ -700,7 +700,8 @@ float AAICharacter::GetBTWDistance ( )
 		return 0;
 	if ( nullptr == GetMesh ( ) )
 		return 0;
-	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "head" )) ) );
+	float distanceBTW = FVector::Dist ( aOpponentPlayer->GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) , GetMesh ( )->GetBoneLocation ( (TEXT ( "pelvis" )) ) );
+	
 	distanceBTW -= 50;
 	//UE_LOG ( LogTemp , Error , TEXT ( "%f" ) , distanceBTW );
 	return distanceBTW;
@@ -1055,11 +1056,12 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 	{
 		preState = currentState;
 
-		niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
+		//niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , niagaraFXSystem , attackInfo.skellEffectLocation);
 
 		//아이들 상태면 가드 상태로 전환한다.
 		if ( attackInfo.DamagePoint!=EDamagePointInteraction::Lower && (preState == stateIdle || preState == stateGuard) )
-		{
+		{ //사운드
+			UGameplayStatics::PlaySound2D ( GetWorld ( ) , guardSFV );
 			niagaraFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation ( GetWorld ( ) , blockedFXSystem , attackInfo.skellEffectLocation );
 			ExitCurrentState ( ECharacterStateInteraction::HitGround );
 			stateGuard->SetAttackInfo ( attackInfo );
