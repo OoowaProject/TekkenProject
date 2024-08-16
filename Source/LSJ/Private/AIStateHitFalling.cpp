@@ -88,7 +88,7 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	if ( rightLength < 0 )
 		addForce *= -1.0f;
 	if ( FMath::Abs ( rightLength ) > 1 )
-		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce) * owner->GetCapsuleComponent ( )->GetMass ( );
+		knockbackDirection += owner->GetActorRightVector ( ) * (rightLength * 66.67 + addForce - 2000) * owner->GetCapsuleComponent ( )->GetMass ( );
 	if ( FMath::Abs ( upLength ) > 1 )
 		knockbackDirection.Z = (upLength * 66.67 + 70000) * owner->GetCapsuleComponent ( )->GetMass ( );
 
@@ -106,13 +106,14 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	//knockbackDirection.Z = 110000.0f * owner->GetCapsuleComponent ( )->GetMass ( ) * 1.2f;
 	//owner->GetCapsuleComponent ( )->AddForce ( FVector ( 0.0f , 0.0f , 100.0f * owner->GetCapsuleComponent ( )->GetMass ( ) ) , NAME_None , true );
 	owner->GetCapsuleComponent ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
+	owner->GetMesh ( )->SetPhysicsLinearVelocity ( FVector::ZeroVector );
 	owner->GetCapsuleComponent ( )->SetCollisionResponseToChannel ( ECollisionChannel::ECC_GameTraceChannel4 , ECollisionResponse::ECR_Ignore );
-	
 	owner->GetCapsuleComponent ( )->AddForce ( knockbackDirection , NAME_None , false );
 
 	if ( WasKnockDown ) //누워있을때 맞는 애니메이션 실행
 	{ 
-		animInstace->StopAllMontages ( 0.5f );
+		
+		//animInstace->StopAllMontages ( 0.5f );
 		animInstace->PlayMontageAtFrameRate ( animInstace->hitKnockDownMontage , attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 		animInstace->bFalling = false;
 	}
@@ -139,8 +140,10 @@ void UAIStateHitFalling::Enter ( UAICharacterAnimInstance* pAnimInstance )
 	}
 	else //서있는 상태 혹은 앉아있는 상태에서 공격받은 경우
 	{
-		animInstace->bFalling = true;
+		owner->StopAnimMontage ( );
 		animInstace->StopAllMontages ( 0.1f );
+		animInstace->bFalling = true;
+
 		//animInstace->PlayHitFallingMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 		//animInstace->PlayHitFallingTurnMontage ( attackInfoArray[0].RetrieveFrame + attackInfoArray[0].OppositeHitFrame , 30.0f );
 	}

@@ -66,7 +66,7 @@ void AGameMode_MH::BeginPlay()
 	if (this->Player1Class)
 	{
 		this->Player1 = this->GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			this->Player1Class , FVector(0 , -300 , 50) , FRotator(0 , 90 , 0));
+			this->Player1Class , FVector(0 , -300 , 70) , FRotator(0 , 90 , 0));
 		Control->Player1 = Cast<ACPP_CharacterPaul>(Player1);
 		playerA = Player1;
 
@@ -79,7 +79,7 @@ void AGameMode_MH::BeginPlay()
 	if (this->Player2Class)
 	{
 		this->Player2 = this->GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			this->Player2Class , FVector(0 , 300 , 50) , FRotator(0 , -90 , 0));
+			this->Player2Class , FVector(0 , 300 , 70) , FRotator(0 , -90 , 0));
 		Control->Player2 = Cast<ACPP_CharacterPaul>(Player2);
 		if (this->Player1)
 		{
@@ -98,7 +98,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player1Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer1 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , -300 , 50 ) ,
+			PlayerAIClass , FVector(0 , -300 , 70 ) ,
 			FRotator(0 , 90 , 0));
 		if (Player2)
 			Player2->aOpponentPlayer = aiplayer1;
@@ -113,7 +113,7 @@ void AGameMode_MH::BeginPlay()
 	if (!this->Player2Class)
 	{
 		ACPP_Tekken8CharacterParent* aiplayer2 = GetWorld()->SpawnActor<ACPP_Tekken8CharacterParent>(
-			PlayerAIClass , FVector(0 , 300 , 50 ) ,
+			PlayerAIClass , FVector(0 , 300 , 70 ) ,
 			FRotator(0 , -90 , 0));
 		if (Player1)
 			Player1->aOpponentPlayer = aiplayer2;
@@ -273,7 +273,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//HP가 0이 되었을 때 호출,
 	//타이머가 0 이 되었을 떄 호출
 	//타이머가 0이 된 경우에만 End HP 호출
-		if (gameTimer <= 0)
+		/*if ( gameTimer <= 0 )
 		{
 			// UI를 업데이트
 			if (PlayerInfoUI)
@@ -282,7 +282,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 				player2HP = playerB->Hp;
 				PlayerInfoUI->UpdateEndHP(player1HP , player2HP);
 			}
-		}
+		}*/
 	//라운드 스코어 ++
 		CheckRoundWinner();
 

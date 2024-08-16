@@ -122,6 +122,7 @@ public:
 	virtual void PlayeAttackRHMontage ( );
 	virtual void PlayeAttackLHMontage ( );
 	virtual void PlayeAttackLFMontage ( );
+	void FinishMontage ( );
 	virtual void PlayeAttackLowerLFMontage ( );
 	virtual void PlayerIdleMontage( );
 	virtual bool StateWalkForward ( ) const { return bStateWalkForward; }

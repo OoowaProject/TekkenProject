@@ -32,7 +32,8 @@
 #include "GameMode_MH.h"
 #include "../Plugins/FX/Niagara/Source/Niagara/Public/NiagaraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
-
+#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "BehaviorTree/BehaviorTree.h"
 // Sets default values
 AAICharacter::AAICharacter()
 {
@@ -211,7 +212,7 @@ AAICharacter::AAICharacter()
 	stateComboLaserAttack->attackInfoArray.Add(attack9);
 
 	FAttackInfoInteraction attackRHMiddle;
-	attackRHMiddle.KnockBackDirection = FVector ( 400.f , 0.f , 0.f ); //-0.5 보다 적게 예상 3*
+	attackRHMiddle.KnockBackDirection = FVector ( 400.f , 0.f , 30.f ); //-0.5 보다 적게 예상 3*
 	attackRHMiddle.KnockBackDefenceDir = FVector ( 70.f , 0.f , 0.f ); // 가드했을때
 	attackRHMiddle.DamageAmount = 23;
 	attackRHMiddle.DamagePoint = EDamagePointInteraction::Middle;
@@ -750,8 +751,8 @@ void AAICharacter::OnAttackCollisionLF ( )
 				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
-				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
-
+				//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
+				aOpponentPlayer->HitDecision ( hitInfo , this );
 				//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 				IsAttacked = true;
 			}
@@ -794,8 +795,8 @@ void AAICharacter::OnAttackCollisionRF ( )
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
-				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
-
+				//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
+				aOpponentPlayer->HitDecision ( hitInfo , this );
 				//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 				IsAttacked = true;
 			}
@@ -839,8 +840,8 @@ void AAICharacter::OnAttackCollisionLH ( )
 
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
-				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
-
+				//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
+				aOpponentPlayer->HitDecision ( hitInfo , this );
 				//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 				IsAttacked = true;
 			}
@@ -880,11 +881,11 @@ void AAICharacter::OnAttackCollisionRH ( )
 					UGameplayStatics::PlaySound2D ( GetWorld ( ) , attackRHSFV );
 				hitInfo.KnockBackDirection = RelativePointVector ( hitInfo.KnockBackDirection.X , hitInfo.KnockBackDirection.Y , hitInfo.KnockBackDirection.Z );
 				hitInfo.KnockBackDefenceDir = RelativePointVector ( hitInfo.KnockBackDefenceDir.X , hitInfo.KnockBackDefenceDir.Y , hitInfo.KnockBackDefenceDir.Z );
-
+	
 				hitInfo.skellEffectLocation = sphereSpawnLocation;
 				//공격 결과 blackboardComp에 넣기 
-				blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
-
+				//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ? 1 : 0 ); //0 : hit - EAttackResult
+				aOpponentPlayer->HitDecision ( hitInfo , this );
 				//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 				IsAttacked = true;
 			}
@@ -947,8 +948,9 @@ void AAICharacter::OnCollisionLHBeginOverlap ( UPrimitiveComponent* OverlappedCo
 
 		FAttackInfoInteraction hitInfo = SendAttackInfo ( );
 		hitInfo.skellEffectLocation = collisionLH->GetComponentLocation();
+		aOpponentPlayer->HitDecision ( hitInfo , this );
 		//공격 결과 blackboardComp에 넣기 
-		blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this )?1:0 ); //0 : hit - EAttackResult
+		//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this )?1:0 ); //0 : hit - EAttackResult
 
 		//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 		IsAttacked = true;
@@ -966,8 +968,9 @@ void AAICharacter::OnCollisionRHBeginOverlap ( UPrimitiveComponent* OverlappedCo
 		
 		FAttackInfoInteraction hitInfo = SendAttackInfo ( );
 		hitInfo.skellEffectLocation = collisionRH->GetComponentLocation ( );
+		aOpponentPlayer->HitDecision ( hitInfo , this );
 		//공격 결과 blackboardComp에 넣기 
-		blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
+		//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
 		//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 		IsAttacked = true;
 	}
@@ -990,8 +993,9 @@ void AAICharacter::OnCollisionRFBeginOverlap ( UPrimitiveComponent* OverlappedCo
 
 		FAttackInfoInteraction hitInfo = SendAttackInfo ( );
 		hitInfo.skellEffectLocation = collisionRF->GetComponentLocation ( );
+		aOpponentPlayer->HitDecision ( hitInfo , this );
 		//공격 결과 blackboardComp에 넣기 
-		blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
+		//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
 
 		//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 		IsAttacked = true;
@@ -1010,7 +1014,8 @@ void AAICharacter::OnCollisionLFBeginOverlap ( UPrimitiveComponent* OverlappedCo
 		FAttackInfoInteraction hitInfo = SendAttackInfo ( );
 		hitInfo.skellEffectLocation = collisionLF->GetComponentLocation ( );
 		//공격 결과 blackboardComp에 넣기 
-		blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
+		aOpponentPlayer->HitDecision ( hitInfo , this );
+		//blackboardComp->SetValueAsEnum ( TEXT ( "EAttackResult" ) , aOpponentPlayer->HitDecision ( hitInfo , this ) ); //0 : hit - EAttackResult
 
 		//DrawDebugSphere ( GetWorld ( ) , collisionLH->GetComponentLocation ( ) , 20 , 26 , FColor ( 181 , 0 , 0 ) , true , 0.5f , 0 , 0.5f );
 		IsAttacked = true;
@@ -1137,15 +1142,16 @@ bool AAICharacter::HitDecision ( FAttackInfoInteraction attackInfo , ACPP_Tekken
 			}
 			else
 			{
-				if ( attackInfo.KnockBackDirection.Z > 0 || currentState == stateBound || currentState == stateHitFalling )
+				if ( attackInfo.KnockBackDirection.Z > 10 || currentState == stateBound || currentState == stateHitFalling )
 				{
 					if ( currentState != stateBound && currentState != stateHitFalling )
 						// 확대할 위치 , 줌 정도 0.5 기본 , 흔들림정도 , 흔들림 시간
 						aMainCamera->RequestZoomEffect ( GetActorLocation ( ) , 0.9f , 10.0f , 0.3f );
-					ExitCurrentState ( ECharacterStateInteraction::HitGround );
+		
 					if ( preState == stateHitFalling )
 						stateHitFalling->WasHitFalling = true;
 					stateHitFalling->SetAttackInfo ( attackInfo );
+					ExitCurrentState ( ECharacterStateInteraction::HitGround );
 					blackboardComp->SetValueAsBool ( TEXT ( "IsHitFalling" ) , true );
 				}
 		
