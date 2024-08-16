@@ -273,7 +273,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 	//HP가 0이 되었을 때 호출,
 	//타이머가 0 이 되었을 떄 호출
 	//타이머가 0이 된 경우에만 End HP 호출
-		if (gameTimer <= 0)
+		/*if ( gameTimer <= 0 )
 		{
 			// UI를 업데이트
 			if (PlayerInfoUI)
@@ -282,7 +282,7 @@ void AGameMode_MH::HandleNewState(EGameState NewState)
 				player2HP = playerB->Hp;
 				PlayerInfoUI->UpdateEndHP(player1HP , player2HP);
 			}
-		}
+		}*/
 	//라운드 스코어 ++
 		CheckRoundWinner();
 

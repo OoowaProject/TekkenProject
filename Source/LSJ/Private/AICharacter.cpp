@@ -211,7 +211,7 @@ AAICharacter::AAICharacter()
 	stateComboLaserAttack->attackInfoArray.Add(attack9);
 
 	FAttackInfoInteraction attackRHMiddle;
-	attackRHMiddle.KnockBackDirection = FVector ( 400.f , 0.f , 0.f ); //-0.5 보다 적게 예상 3*
+	attackRHMiddle.KnockBackDirection = FVector ( 400.f , 0.f , 30.f ); //-0.5 보다 적게 예상 3*
 	attackRHMiddle.KnockBackDefenceDir = FVector ( 70.f , 0.f , 0.f ); // 가드했을때
 	attackRHMiddle.DamageAmount = 23;
 	attackRHMiddle.DamagePoint = EDamagePointInteraction::Middle;
