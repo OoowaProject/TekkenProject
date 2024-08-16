@@ -38,7 +38,9 @@ void UCPP_PualAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	this->bNuckDown = player->bNuckDown;
 	this->fFallingValue = player->fFallingValue;
 	
-	this->bDead = player->bIsDead;
+	this->bHpDead = player->bHPDead;
+	UE_LOG(LogTemp, Warning, TEXT("%d"), player->Hp);
+ 	this->bDead = player->bIsDead;
 	this->bJump = player->bJumpping;
 }
 
