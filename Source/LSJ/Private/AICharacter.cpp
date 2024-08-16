@@ -211,8 +211,8 @@ AAICharacter::AAICharacter()
 	stateComboLaserAttack->attackInfoArray.Add(attack9);
 
 	FAttackInfoInteraction attackRHMiddle;
-	attackRHMiddle.KnockBackDirection = FVector ( 200.f , 0.f , 00.f ); //-0.5 보다 적게 예상 3*
-	attackRHMiddle.KnockBackFallingDirection = FVector ( 100.f , 0.f , 10.f ); // 맞았을때
+	attackRHMiddle.KnockBackDirection = FVector ( 200.f , 0.f , 10.f ); //-0.5 보다 적게 예상 3*
+	attackRHMiddle.KnockBackDefenceDir = FVector ( 70.f , 0.f , 0.f ); // 가드했을때
 	attackRHMiddle.DamageAmount = 23;
 	attackRHMiddle.DamagePoint = EDamagePointInteraction::Middle;
 	attackRHMiddle.HitFrame = 20; //HitFrame
@@ -227,8 +227,8 @@ AAICharacter::AAICharacter()
 
 	//내가 손해면 - 상대가 손해면 +
 	FAttackInfoInteraction attackTopLH;
-	attackTopLH.KnockBackDirection = FVector ( 200.f , 0.f , 0.f ); // 가드했을때
-	attackTopLH.KnockBackFallingDirection = FVector ( 50.f , 0.f , 0.f ); // 맞았을때
+	attackTopLH.KnockBackDirection = FVector ( 30.f , 0.f , 0.f ); // 맞았을때
+	attackRHMiddle.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
 	attackTopLH.DamageAmount = 5;
 	attackTopLH.DamagePoint = EDamagePointInteraction::Top;
 	attackTopLH.HitFrame = 10; //HitFrame
@@ -242,8 +242,8 @@ AAICharacter::AAICharacter()
 
 	//내가 손해면 - 상대가 손해면 +
 	FAttackInfoInteraction attackLowerLF;
-	attackLowerLF.KnockBackDirection = FVector ( 200.f , 0.f , 0.f ); // 가드했을때
-	attackLowerLF.KnockBackFallingDirection = FVector ( 50.f , 0.f , 0.f ); // 맞았을때
+	attackTopLH.KnockBackDirection = FVector ( 30.f , 0.f , 0.f ); // 맞았을때
+	attackRHMiddle.KnockBackDefenceDir = FVector ( 50.f , 0.f , 0.f ); // 가드했을때
 	attackLowerLF.DamageAmount = 7;
 	attackLowerLF.DamagePoint = EDamagePointInteraction::Lower;
 	attackLowerLF.HitFrame = 12; //HitFrame
@@ -266,7 +266,7 @@ AAICharacter::AAICharacter()
 	{
 		basicAttack1FXSystem = basicAttack1FXSystemFinder.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ( "/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) );
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> basicAttack2FXSystemFinder ( TEXT ("/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) ); //"/Script/Niagara.NiagaraSystem'/Game/Main/SC/BlinkAndDashVFX/VFX_Niagara/NS_Dash_Fire.NS_Dash_Fire'" ) );
 	if ( basicAttack2FXSystemFinder.Succeeded ( ) )
 	{
 		basicAttack2FXSystem = basicAttack2FXSystemFinder.Object;
